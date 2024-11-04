@@ -1,0 +1,15 @@
+
+cal_TTCP: true
+standardize_data: false
+rebuild_cache: false
+rebuild_maps: false
+verbose: true
+incl_vector_map: true
+num_workers: 1  # Adjust based on your CPU core count
+
+# path needed to be replaced
+#desired_data:
+#  - interaction_single
+cache_location: "Dataset"     # Replace it with your own cache location of trajdata
+save_path: "Dataset"    # The path to save the results of interaction extractions
+
