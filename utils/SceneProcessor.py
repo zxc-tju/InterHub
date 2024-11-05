@@ -220,7 +220,7 @@ class SceneProcessor:
 
                 # Determine if it's a two-vehicle or multi-vehicle interaction
                 two_multi = 'two' if len(pair) == 2 else 'multi'
-                vehicle_type = ['HN' if agent_id != 'ego' else 'AV' for agent_id in pair]
+                vehicle_type = ['HV' if agent_id != 'ego' else 'AV' for agent_id in pair]
                 AV_included = 'AV' if 'ego' in pair else 'all_HV'
 
                 # Append the extracted data to the results list

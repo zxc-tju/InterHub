@@ -7,17 +7,17 @@ def main():
     # set the argument parser
     parser = argparse.ArgumentParser(description="Trajectory Data Preprocessing")
     parser.add_argument('--desired_data',
-                        default='lyft_train_full',
-                        help='The dataset you want to unify (default: lyft_train_full)')
+                        default='interaction_single',
+                        help='The dataset you want to unify (default: interaction_single)')
     parser.add_argument(
         "--load_path",
-        default='dataset/lyft/scenes/train_full.zarr',
-        help="Path to your dataset scenario set (default: 'dataset/lyft/scenes/train_full.zarr')"
+        default='dataset/1_origin_datasets/interaction_single',
+        help="Path to your dataset scenario set (default: 'dataset/1_origin_datasets/interaction_single')"
     )
     parser.add_argument(
         "--save_path",
-        default='Rawdataset/lyft',
-        help="Path to save your processed data (default: 'Rawdataset/lyft')"
+        default='dataset/1_store_cache',
+        help="Path to save your processed data (default: 'dataset/1_store_cache')"
     )
     parser.add_argument(
         "--use_multiprocessing",
@@ -34,7 +34,7 @@ def main():
     args = parser.parse_args()
 
     dataset = UnifiedDataset(
-        desired_data=["lyft_train_full"],
+        desired_data=[args.desired_data],
         standardize_data=False,
         rebuild_cache=True,
         rebuild_maps=True,
@@ -45,7 +45,7 @@ def main():
         cache_type="dataframe",
         cache_location=args.save_path,
         data_dirs={
-            "lyft_train_full": args.load_path
+            args.desired_data: args.load_path
         },
     )
 

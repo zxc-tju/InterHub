@@ -10,10 +10,10 @@ def main():
                         help='The dataset name')
     parser.add_argument('--timerange', type=int, default=5,
                         help='Duration (in seconds) to consider for the vehicle\'s future trajectory')
-    parser.add_argument('--cache_location', type=str, default='Dataset',
-                        help='Cache location for trajdata (default: "Dataset")')
-    parser.add_argument('--save_path', type=str, default='Dataset',
-                        help='Path to save the results of interaction extractions (default: "Dataset")')
+    parser.add_argument('--cache_location', type=str, default='dataset/2_unified_cache',
+                        help='Cache location for trajdata (default: "dataset/2_unified_cache")')
+    parser.add_argument('--save_path', type=str, default='dataset/2_extracted_results',
+                        help='Path to save the results of interaction extractions (default: "dataset/2_extracted_results")')
     parser.add_argument('--num_workers', type=int, default=os.cpu_count(),
                         help=f'Number of workers to use (default: {os.cpu_count()})')
 

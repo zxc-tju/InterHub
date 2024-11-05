@@ -9,8 +9,8 @@ starting_extension_time = 0.5  # starting extension time in seconds
 ending_extension_time = 0       # ending extension time in seconds
 considertime = 5  # future time of trajectories in seconds
 gif_path = "visualize/case"  # path to save gif files
-interaction_idx_info = 'dataset/results.csv'  # path to interaction csv file
-cache_location = 'dataset'  # path to cache location
+interaction_idx_info = 'dataset/2_extracted_results/results.csv'  # path to interaction csv file
+cache_location = 'dataset/2_unified_cache'   # path to cache location
 top_n = 10  # number of gifs to generate based on the top N intensity values
 
 # read the csv file containing interaction information

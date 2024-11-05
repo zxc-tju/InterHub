@@ -76,33 +76,47 @@ class MultiProcess():
 class AccelerationCalculate(MultiProcess):
 
     def constraint_function1(self, a, d, v, ai, ti):
-        delta_TTCP = 1.5
-        t1 = a[ti[0]]
-        a2 = a[ai[1]]
-        drive_dis_later = v[1] * t1 + 1 / 2 * a2 * t1 ** 2
-        v_later = v[1] + a2 * t1
-
-        if v_later / a2 >= delta_TTCP:
-            dis_to_drive = v_later * delta_TTCP + 1 / 2 * a2 * delta_TTCP ** 2
-            return d[1] - (drive_dis_later + dis_to_drive)
-        else:
-            return d[1] - v_later ** 2 / 2 / a2
+        t1, t2 = a[ti[0]], a[ti[1]]
+        delta_TTCP = abs(t1 - t2)
+        return delta_TTCP - 1.5
 
     def constraint_function2(self, a, d, v, ai, ti):
-        dis1 = v[0] * a[ti[0]] + a[ai[0]] * a[ti[0]] ** 2 / 2
-        return dis1 - d[0]
+        d1 = d[0]
+        v1 = v[0]
+        t1 = a[ti[0]]
+        dis1 = v1 * t1 + a[0] * t1 ** 2 / 2
+        return 0.1 - abs(dis1 - d1)
 
     def constraint_function3(self, a, d, v, ai, ti):
-        dis1 = v[0] * a[ti[0]] + a[ai[0]] * a[ti[0]] ** 2 / 2
-        return dis1
-    
+        d2 = d[1]
+        v2 = v[1]
+        t2 = a[ti[1]]
+        dis2 = v2 * t2 + a[1] * t2 ** 2 / 2
+        return 0.1 - abs(d2 - dis2)
+
     def constraint_function4(self, a, d, v, ai, ti):
-        vk = v[0] + a[ai[0]] * a[ti[0]] 
-        return vk
-    
+        v1 = v[0]
+        t1 = a[ti[0]]
+        dis1 = v1 * t1 + a[0] * t1 ** 2 / 2
+        return dis1
+
     def constraint_function5(self, a, d, v, ai, ti):
-        vk = v[1] + a[ai[1]] * a[ti[1]] 
-        return vk
+        v2 = v[1]
+        t2 = a[ti[1]]
+        dis2 = v2 * t2 + a[1] * t2 ** 2 / 2
+        return dis2
+    
+    def constraint_function6(self, a, d, v, ai, ti):
+        v1 = v[0]
+        t1 = a[ti[0]]
+        v1 = v1 + a[0] * t1 
+        return v1
+    
+    def constraint_function7(self, a, d, v, ai, ti):
+        v2 = v[1]
+        t2 = a[ti[1]]
+        v2 = v2 + a[1] * t2 
+        return v2
 
 
     def MultiCalculateAcceleration(self, pair_info, pair_multi, timestamp_now):
@@ -152,7 +166,9 @@ class AccelerationCalculate(MultiProcess):
                 {'type': 'ineq', 'fun': self.constraint_function2, 'args': (d, v, ai, ti)},
                 {'type': 'ineq', 'fun': self.constraint_function3, 'args': (d, v, ai, ti)},
                 {'type': 'ineq', 'fun': self.constraint_function4, 'args': (d, v, ai, ti)},
-                {'type': 'ineq', 'fun': self.constraint_function5, 'args': (d, v, ai, ti)}
+                {'type': 'ineq', 'fun': self.constraint_function5, 'args': (d, v, ai, ti)},
+                {'type': 'ineq', 'fun': self.constraint_function6, 'args': (d, v, ai, ti)},
+                {'type': 'ineq', 'fun': self.constraint_function7, 'args': (d, v, ai, ti)}
             ]
             total_constraints.extend(constraints)
             # Calculate PET (Post Encroachment Time) and add to list
@@ -170,7 +186,7 @@ class AccelerationCalculate(MultiProcess):
             # If still not successful, return default values
             if not result.success:
                 print('Optimization failed:', result.message)
-                return 0, True, [0] * len(pair_multi)
+                return 0, True, [0] * len(pair_multi), min(pet_list), np.mean(pet_list)
 
         # Return the results including the minimum PET and the mean PET
         return result.fun, result.success, result.x, min(pet_list), np.mean(pet_list)
