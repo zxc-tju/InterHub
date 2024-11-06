@@ -126,7 +126,7 @@ class InteractionProcessorTraj:
         Returns:
             List[List]: Processed results for the scene.
         """
-        print(idx)
+        # print(idx)
         # Initialize SceneProcessor for the given scene
         scene_processor = SceneProcessor(
             self.desired_data, idx, desired_scene, self.map_api, self.cache_path,
