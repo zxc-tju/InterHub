@@ -1,0 +1,55 @@
+dataset,scenario_idx,track_id,start,end,intensity,PET,two/multi,vehicle_type,AV_included
+interaction_multi,0,0_2;0_9,0,6,1.4934397219598008,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,2,2_11;2_6,0,6,0.7933934833692687,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,4,4_10;4_9,0,4,0.3799846625542873,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,3,3_15;3_6,0,8,2.2093639117775563,0.03134867485045145,two,"['HV', 'HV']",all_HV
+interaction_multi,1,1_10;1_2,0,16,1.4934397219598008,0.7020459039174254,two,"['HV', 'HV']",all_HV
+interaction_multi,5,5_1;5_3,0,6,1.464419582575754,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,8,8_8;8_9,0,4,1.0396104615965123,0.48182006868531646,two,"['HV', 'HV']",all_HV
+interaction_multi,7,7_2;7_7,0,9,0.8345671961117365,0.07306350298242936,two,"['HV', 'HV']",all_HV
+interaction_multi,9,9_3;9_9,0,8,0.7928148116294539,1.1874685805916596,two,"['HV', 'HV']",all_HV
+interaction_multi,6,6_1;6_3,0,16,1.464419582575754,0.9963998260893332,two,"['HV', 'HV']",all_HV
+interaction_multi,11,11_6;11_7,0,4,0.7507382850164629,0.8897404165108833,two,"['HV', 'HV']",all_HV
+interaction_multi,12,12_5;12_7,0,7,1.6379323267038781,0.4514948267985903,two,"['HV', 'HV']",all_HV
+interaction_multi,13,13_12;13_7,1,13,1.0450558397191119,1.0575465235537367,two,"['HV', 'HV']",all_HV
+interaction_multi,10,10_2;10_3;10_6,0,6,0.17396638923444682,3.028033915958263,multi,"['HV', 'HV', 'HV']",all_HV
+interaction_multi,15,15_2;15_5,0,4,0.6273349132660894,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,14,14_3;14_4,0,6,0.30767929062327765,0.4110153846672633,two,"['HV', 'HV']",all_HV
+interaction_multi,16,16_10;16_15,3,8,1.6012838535276857,1.0904909102451341,two,"['HV', 'HV']",all_HV
+interaction_multi,18,18_11;18_13,0,10,0.820214698724478,0.881751841035169,two,"['HV', 'HV']",all_HV
+interaction_multi,20,20_12;20_2,0,6,0.39548198347461405,1.2575360181784054,two,"['HV', 'HV']",all_HV
+interaction_multi,19,19_1;19_5,0,9,3.2353809100390762,0.48578859369976035,two,"['HV', 'HV']",all_HV
+interaction_multi,21,21_6;21_9,4,10,0.3792540844872548,1.3438857998018916,two,"['HV', 'HV']",all_HV
+interaction_multi,24,24_4;24_5,0,7,1.1353561340943648,0.21902446698360123,two,"['HV', 'HV']",all_HV
+interaction_multi,23,23_2;23_9,0,9,1.5404088038297659,0.02992041485561492,two,"['HV', 'HV']",all_HV
+interaction_multi,25,25_12;25_3,0,5,1.9720104839584165,0.8835925490724503,two,"['HV', 'HV']",all_HV
+interaction_multi,26,26_24;26_9,0,7,0.981916690600077,0.15350720899816572,two,"['HV', 'HV']",all_HV
+interaction_multi,17,17_2;17_6,14,19,3.2353809100390762,0.6164633289713957,two,"['HV', 'HV']",all_HV
+interaction_multi,17,17_2;17_5;17_6,0,13,3.895851692751922,0.8344593710134675,multi,"['HV', 'HV', 'HV']",all_HV
+interaction_multi,27,27_8;27_9,0,9,0.9429636954710604,0.560748876244423,two,"['HV', 'HV']",all_HV
+interaction_multi,22,22_11;22_12,10,15,0.9265731245857978,1.0246774364825657,two,"['HV', 'HV']",all_HV
+interaction_multi,22,22_11;22_12;22_9,0,9,2.162806289059451,0.9225390172313235,multi,"['HV', 'HV', 'HV']",all_HV
+interaction_multi,28,28_11;28_8,0,5,0.6077267394393753,0.19340060288235694,two,"['HV', 'HV']",all_HV
+interaction_multi,32,32_10;32_4,5,11,0.2283848289528613,1.4375746146518074,two,"['HV', 'HV']",all_HV
+interaction_multi,30,30_12;30_8,0,4,0.9125477605472561,0.9456832499002505,two,"['HV', 'HV']",all_HV
+interaction_multi,29,29_5;29_9,1,11,1.7713217420814757,1.2222948200789996,two,"['HV', 'HV']",all_HV
+interaction_multi,31,31_10;31_5,11,21,1.7713217420814757,1.2222948200789996,two,"['HV', 'HV']",all_HV
+interaction_multi,33,33_16;33_5,0,7,1.8979884411530563,0.9834295360557648,two,"['HV', 'HV']",all_HV
+interaction_multi,35,35_2;35_6,0,5,0.3971511680361375,0.42615207441569947,two,"['HV', 'HV']",all_HV
+interaction_multi,34,34_16;34_5,2,17,2.0117553869818736,0.11873946725659046,two,"['HV', 'HV']",all_HV
+interaction_multi,38,38_11;38_3,7,11,0.6204906521128708,1.2238698244021593,two,"['HV', 'HV']",all_HV
+interaction_multi,36,36_14;36_2,0,10,3.1045444242866784,0.8725229288524174,two,"['HV', 'HV']",all_HV
+interaction_multi,39,39_7;39_8,0,8,0.5398233157695465,1.1467146489615538,two,"['HV', 'HV']",all_HV
+interaction_multi,40,40_13;40_3,0,4,0.660089118539534,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,41,41_2;41_8,0,11,0.3972574673413496,1.1888513419508104,two,"['HV', 'HV']",all_HV
+interaction_multi,42,42_11;42_12,0,6,0.12623838134776932,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,37,37_15;37_2,0,20,3.1045444242866784,0.3026147825607257,two,"['HV', 'HV']",all_HV
+interaction_multi,44,44_4;44_6,0,4,0.1672132944632951,1.3579443214238234,two,"['HV', 'HV']",all_HV
+interaction_multi,46,46_3;46_6,0,4,0.5393668107113253,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,45,45_1;45_6,0,4,2.206546015915404,0.0,two,"['HV', 'HV']",all_HV
+interaction_multi,43,43_10;43_2,0,9,1.073615502915258,0.6771953656794141,two,"['HV', 'HV']",all_HV
+interaction_multi,49,49_11;49_13,0,5,0.5249337939932661,1.1665825541464407,two,"['HV', 'HV']",all_HV
+interaction_multi,47,47_4;47_9,0,11,0.9017854619108298,1.0278885497044912,two,"['HV', 'HV']",all_HV
+interaction_multi,48,48_10;48_2,0,6,0.8523936416391116,0.4574135998106752,two,"['HV', 'HV']",all_HV
+interaction_multi,50,50_11;50_5,0,13,0.6813819051182889,1.228449771503359,two,"['HV', 'HV']",all_HV
+interaction_multi,51,51_13;51_8,5,11,0.6667681676895332,1.2729530379138139,two,"['HV', 'HV']",all_HV

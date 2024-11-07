@@ -6,7 +6,7 @@ from utils.InteractionProcessor import InteractionProcessorTraj
 def main():
 
     parser = argparse.ArgumentParser(description="Interaction Processor")
-    parser.add_argument('--desired_data',default='interaction_single',
+    parser.add_argument('--desired_data',default='interaction_multi',
                         help='The dataset name')
     parser.add_argument('--timerange', type=int, default=5,
                         help='Duration (in seconds) to consider for the vehicle\'s future trajectory')

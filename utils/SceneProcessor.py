@@ -204,7 +204,7 @@ class SceneProcessor:
 
         # Iterate over each interaction pair to extract results
         for pair, value in result_segments.items():
-            col_dataset = self.desired_data[0]
+            col_dataset = self.desired_data
             col_scenario_idx = self.desired_scene.raw_data_idx
             track_idx = ";".join(str(id) for id in pair)
             start_time = value[0][0]

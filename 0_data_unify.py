@@ -7,12 +7,12 @@ def main():
     # set the argument parser
     parser = argparse.ArgumentParser(description="Trajectory Data Preprocessing")
     parser.add_argument('--desired_data',
-                        default='interaction_single',
-                        help='The dataset you want to unify (default: interaction_single)')
+                        default='interaction_multi',
+                        help='The dataset you want to unify (default: interaction_multi)')
     parser.add_argument(
         "--load_path",
-        default='data/0_origin_datasets/interaction_single',
-        help="Path to your dataset scenario set (default: 'data/0_origin_datasets/interaction_single')"
+        default='data/0_origin_datasets/interaction_multi',
+        help="Path to your dataset scenario set (default: 'data/0_origin_datasets/interaction_multi')"
     )
     parser.add_argument(
         "--save_path",

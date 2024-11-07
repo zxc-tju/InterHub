@@ -114,6 +114,7 @@ class InteractionProcessorTraj:
         col_name = ["dataset", "scenario_idx", "track_id", "start", "end",
                     'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included']
         results_df = pd.DataFrame(results_list, columns=col_name)
+        os.makedirs(self.save_path, exist_ok=True)
         results_df.to_csv(f'{self.save_path}/results.csv', index=False)
 
     def process_single_scene(self, idx, desired_scene) -> List[List]:
