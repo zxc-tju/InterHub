@@ -1,7 +1,29 @@
 
 # Dataset
 
+## Prerequisites for handling the original datasets in InterHub
 
+We provide the unified and processed interaction event extracted from multiple public datasets in the full [Interhub dataset](https://lianjie.link/interhub) which are ready to use. But if you want to extract the interaction events from the original datasets, you will need to install the following devkits and/or package dependencies:
+```
+# For Lyft
+pip install "trajdata[lyft]"
+
+# For Waymo
+pip install "trajdata[waymo]"
+
+# For INTERACTION
+pip install "trajdata[interaction]"
+```
+
+* If you need to use nuPlan, you will need to install the 
+[nuPlan devkit](https://nuplan-devkit.readthedocs.io/en/latest/installation.html) 
+separately.
+
+This is the `Installation` step of trajdata, and for more 
+information, please see <https://github.com/NVlabs/trajdata?tab=readme-ov-file#installation>
+
+
+## Download the raw datasets
 Download the raw datasets (Waymo, nuPlan, Lyft Level 5, INTERACTION, 
 etc.) in case you do not already have them. **If you prefer to 
 use our processed data directly, you can skip this step.** However, 
