@@ -72,11 +72,7 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
 
 ## Full Working Flows with InterHub
 
-You can use the cache file of the interaction event data formatted uniformly by us directly on [this webpage](lianjie), without downloading the original dataset.
-
-(If you need to extract data from the origin datasets, download the raw datasets. [dataset.md](dataset.md) provides more details.)
-
-### 1. Data Unify
+### 1. Data Unification
 
 **1.1 For ready-to-use interaction data in InterHub**, download and use the data from [InterHub](https://lianjie.link/interhub), unzip it, and place it in the `data/1_unified_cache` folder. Proceed to [2. Interaction Event Extract](#2-interaction-event-extract).
 
@@ -91,7 +87,7 @@ For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `1_Data_unify.py` p
 - **cache_location**: Path where the generated cache will be stored. Ensure enough memory, e.g., `'data/1_unified_cache/interaction_multi'`.
 ---
 
-### 2. Interaction Event Extract
+### 2. Interaction Event Extraction
 
 ```bash
 python 2_Interaction_extract.py \
@@ -102,14 +98,15 @@ python 2_Interaction_extract.py \
 ```
 
 Replace `cache_location` and `save_path` with your paths. For details, refer to the parameter settings in the [Get trajdata cache](#get-trajdata-cache) section. By default, a subset of `interaction_multi` dataset is read from the `data/1_unified_cache` folder.
+
 ---
 
-### 3. Visualize  
+### 3. Visualization
 
-#### Case_visualize
+#### Case visualization
 Run `2_case_visualize.py` to plot interaction segments and generate GIFs.
 
-#### Paper_plot
+#### Paper plot
 Run `3_paper_plot.py` to plot results in the paper using metadata of interaction events in the full InterHub dataset.
 
 ---
