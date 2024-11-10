@@ -1,118 +1,124 @@
-# InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving
+<div style="text-align: center;">
+    <img src="image/logo.png" alt="Logo" style="width: 300px; height: auto;">
+</div>
 
-## Overview
-This repo provides the source code and data for the following paper:
+<h1 style="text-align: center;">A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving</h1>
 
-InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving
+---
 
-We provide mainly three tools to help users navigate **InterHub**:
+## 📖 Overview
+This repository provides the source code and data for the paper:
 
-1. **1_Data_unify.py**  
-   Provides a data interface to convert various data resources into a unified format that works seamlessly with the interaction event extraction process.
+**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**
 
-2. **2_Interaction_extract.py**  
-   Extracts interactive segments from the unified driving records, following the criterion detailed in our [Paper](#citation).
+We offer three tools to help users navigate **InterHub**:
 
-3. **3_Case_visualize.py**  
-    Creates GIFs to visualize the interaction cases in **InterHub**, showcasing typical interaction scenarios.
+1. **1_data_unify.py**  
+   Converts various data resources into a unified format for seamless interaction event extraction.
 
+2. **2_interaction_extract.py**  
+   Extracts interactive segments from unified driving records, as detailed in our [Paper](#citation).
 
-## Quick Start
+3. **3_case_visualize.py**  
+   Creates GIFs to visualize interaction cases in **InterHub**, showcasing typical scenarios.
 
-### Environment Setup
+---
 
-Please make sure the following prerequisites are satisfied. We recommend using conda to manage the python environment.
+## 🚀 Quick Start
 
-* Create a conda environment and activate it:
-```
-conda create --name interhub python=3.8
-conda activate interhub
-```
+### 🛠️ Environment Setup
+
+Ensure the following prerequisites are satisfied. We recommend using conda for Python environment management.
+
+* Create and activate a conda environment:
+  ```bash
+  conda create --name interhub python=3.8
+  conda activate interhub
+  ```
 
 * Upgrade pip to the latest version:
-```
-python -m pip install --upgrade pip
-```
+  ```bash
+  python -m pip install --upgrade pip
+  ```
 
-* (Optional) Try to change the pip source for faster installation if run into network issues:
-```
-pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
-```
+* (Optional) Change pip source for faster installation if network issues occur:
+  ```bash
+  pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+  ```
 
-* Install the required packages:
-```
-pip install -r requirements.txt
-```
+* Install required packages:
+  ```bash
+  pip install -r requirements.txt
+  ```
 
-### Walk through InterHub with a mini dataset
-* We provide a subset of the original *interaction_multi* dataset in `data/0_origin_datasets/interaction_multi` for a quick try.
-Run the following command to unify the data in the subset:
-```
-python 0_data_unify.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --data_dirs data/0_origin_datasets/interaction_multi
-```
+### 🏃 Walk through InterHub with a Mini Dataset
 
-* Then, you can run the following command to extract the interaction events from the subset:
-```
-python 1_Interaction_extract.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --save_path data/2_extracted_results
-```
+* A subset of the original *interaction_multi* dataset is provided in `data/0_origin_datasets/interaction_multi` for a quick try. Unify the data with:
+  ```bash
+  python 0_data_unify.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --data_dirs data/0_origin_datasets/interaction_multi
+  ```
 
-* Finally, you can run the following command to visualize the interaction events:
-```
-python 2_case_visualize.py --cache_location data/1_unified_cache/interaction_multi --interaction_idx_info data/2_extracted_results/results.csv  --top_n 3
-```
-see `figs/case` for the visualization results.
+* Extract interaction events from the subset:
+  ```bash
+  python 1_Interaction_extract.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --save_path data/2_extracted_results
+  ```
 
+* Visualize the interaction events:
+  ```bash
+  python 2_case_visualize.py --cache_location data/1_unified_cache/interaction_multi --interaction_idx_info data/2_extracted_results/results.csv --top_n 3
+  ```
+  See `figs/case` for visualization results.
+
+---
 
 ## Full Working Flows with InterHub
 
-You can use the cache file of the interaction event data that has 
-been formatted uniformly by us directly on [this webpage](lianjie), without having to download the original dataset. 
+You can use the cache file of the interaction event data formatted uniformly by us directly on [this webpage](lianjie), without downloading the original dataset.
 
-( If you need to extract data from the origin datasets, you will 
-need to download the raw datasets. [dataset.md](dataset.md) 
-provide more details. )
-
+(If you need to extract data from the origin datasets, download the raw datasets. [dataset.md](dataset.md) provides more details.)
 
 ### 1. Data Unify
 
-**1.1 For those who want to explore the ready-for-use interaction data in the InterHub dataset**, the interaction events in **INTERACTION, nuPlan, Waymo, lyft** are already extracted, unified and processed, one can download and directly use them. Download the data from [InterHub](https://lianjie.link/interhub), unzip it, and put it in the `data/1_unified_cache` folder and move on to step [2. Interaction Event Extract](#2-interaction-event-extract).
+**1.1 For ready-to-use interaction data in InterHub**, download and use the data from [InterHub](https://lianjie.link/interhub), unzip it, and place it in the `data/1_unified_cache` folder. Proceed to [2. Interaction Event Extract](#2-interaction-event-extract).
 
+**1.2 For working from scratch or extracting from other data resources**, the origin datasets are necessary. Refer to [Datasets](#datasets) for details on building the needed dataset structure. Preprocess the dataset to form a data cache if using initial or unprocessed datasets.
 
-**1.2 For those who want to work from scratch or extract interaction events from the data resource other than those in the InterHub**, the origin datasets is necessary in this case. Turn to [Datasets](#datasets) for details to build the needed datasets structure. It is important to preprocess the dataset to form a data cache if you use the initial datasets or other datasets that are not in the list that we have processed.
+For datasets like **INTERACTION, nuPlan, Waymo, lyft**, `1_Data_unify.py` provides scripts for preprocessing raw data into a unified data cache. The project [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) is used in this step. Replace arguments according to the dataset you want to process:
 
-For the dataset **INTERACTION, nuPlan, Waymo, lyft**, `1_Data_unify.py` provides scripts for preprocessing the raw data into unified data cache that works with the following steps. The project [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) is applied in this step. Replace the following arguments according to the dataset you want to process:
+- **desired_data**: List of datasets to process, e.g., `["interaction_multi"]`. See support list in [dataset.md](dataset.md).
 
-- **desired_data**: A list specifying the datasets to be processed, e.g., `["interaction_multi"]`. See support list in [dataset.md](dataset.md).
+- **load_path**: Path where raw data is stored, e.g., `'data/0_origin_datasets/interaction_multi'`.
 
-- **load_path**: the path where the corresponding raw data is stored, e.g., `'data/0_origin_datasets/interaction_multi'`.
+- **cache_location**: Path where the generated cache will be stored. Ensure enough memory, e.g., `'data/1_unified_cache/interaction_multi'`.
 
-- **cache_location**: The path where the generated cache will be stored. Note that this requires a large amount of storage space, so please ensure you have enough memory, e.g., `'data/1_unified_cache/interaction_multi'`.
+---
 
+### 2. Interaction Event Extract
 
-## 2. Interaction Event Extract
-
-```commandline
+```bash
 python 2_Interaction_extract.py \
 --desired_data dataset_name \
 --cache_location path/to/your/dataset/cache \
---save_path path/to/save/your/result\
+--save_path path/to/save/your/result \
 --num_workers=8 \
 --timerange=5
 ```
 
-Replace `cache_location`, and `save_path` with your own paths. For details, refer to the parameter settings in the [Get trajdata cache](#get-trajdata-cache) section. By default, a subset of `interaction_multi` dataset is read from the `data/1_unified_cache` folder.
+Replace `cache_location` and `save_path` with your paths. For details, refer to the parameter settings in the [Get trajdata cache](#get-trajdata-cache) section. By default, a subset of `interaction_multi` dataset is read from the `data/1_unified_cache` folder.
 
+---
 
-## 3. Visualize  
+### 3. Visualize  
 
-### Case_visualize
-Run `2_case_visualize.py` to plot the interaction segments and generate GIFs.
+#### Case_visualize
+Run `2_case_visualize.py` to plot interaction segments and generate GIFs.
 
-### Paper_plot
-Run `3_paper_plot.py` to plot the results in the paper using the metadata of the interaction events in the full InterHub dataset.
+#### Paper_plot
+Run `3_paper_plot.py` to plot results in the paper using metadata of interaction events in the full InterHub dataset.
 
+---
 
-## Citation
+## 📜 Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.
 
 
