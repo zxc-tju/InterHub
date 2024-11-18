@@ -1,32 +1,56 @@
 <p align="center">
-    <img src="image/logo.png" alt="Logo" width="300">
+    <img src="image/logo_interhub.png" alt="Logo" width="500">
+    <h1 align="center">A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving</h1>
+
 </p>
 
-<h1 align="center">A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving</h1>
 
 
-## 📖 Overview
-This repository provides the source code and data for the paper:
 
-**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**
+<br/>
 
+> [**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**](https://arxiv.org/xxxxx)  <br>
+> [Xiyan Jiang](https://tops.tongji.edu.cn/info/1161/2143.htm)<sup>1</sup>, [Xiaocong Zhao](https://zxc-tju.github.io/)<sup>1,*</sup>, [Jian Sun](https://tops.tongji.edu.cn/info/1031/1187.htm)<sup>1</sup>, [Yiru Liu](https://tops.tongji.edu.cn/info/1131/1810.htm)<sup>1</sup>, [Zirui Li](https://lzrbit.github.io/)<sup>2</sup>, [Peng Hang](https://tops.tongji.edu.cn/info/1031/1383.htm)<sup>1</sup>, and Lu Xiong<sup>1</sup>  <br>
+> <sup>1</sup> Tongji University, <sup>2</sup> Beijing Institute of Technology<br>
+<sup> * </sup> Correspondance: zhaoxc@tongji.edu.cn
+
+
+This repo is intended to serve as a starting point for driving-interaction-related research. We provide a publicly accessible dataset with rich interaction events and tools for interaction extraction.
+
+<table align="center">
+    <tr>
+        <td><img src="image/teaser_1.gif" alt="Teaser GIF 1" width="360" height="240"></td>
+        <td><img src="image/teaser_2.gif" alt="Teaser GIF 2" width="360" height="240"></td>
+    </tr>
+    <tr>
+        <td><img src="image/teaser_3.gif" alt="Teaser GIF 3" width="360" height="240"></td>
+        <td><img src="image/teaser_4.gif" alt="Teaser GIF 4" width="360" height="240"></td>
+    </tr>
+</table>
+<br/>
+
+## Roadmap
+
+> Naturalistic driving datasets are reorganized using a unified data interface [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) to provide extensibility and easy access to multiple driving data resources. Then, driving interaction events covering a wide range of interaction archetypes, as well as their combinations, are extracted using the formal method. Rich features of the extracted scenarios, including interaction intensity, AV involvement, and conflict type, are analyzed and annotated to support applications with varied needs regarding driving interaction data.
+
+<div align="center">
+<img src="image/roadmap.png"/>
+</div>
+
+## Overview
 
 We offer three tools to help users navigate **InterHub**:
 
-1. **1_data_unify.py**  
-   Converts various data resources into a unified format for seamless interaction event extraction.
+* **0_data_unify.py** converts various data resources into a unified format for seamless interaction event extraction.
 
-2. **2_interaction_extract.py**  
-   Extracts interactive segments from unified driving records, as detailed in our [Paper](#citation).
+* **1_interaction_extract.py** extracts interactive segments from unified driving records.
 
-3. **3_case_visualize.py**  
-   Creates GIFs to visualize interaction cases in **InterHub**, showcasing typical scenarios.
+* **2_case_visualize.py** creates GIFs to visualize interaction cases in **InterHub**, showcasing typical scenarios.
 
----
 
-## 🚀 Quick Start
+## Quick Start
 
-### 🛠️ Environment Setup
+### Environment Setup
 
 Ensure the following prerequisites are satisfied. We recommend using conda for Python environment management.
 
@@ -41,7 +65,7 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
   python -m pip install --upgrade pip
   ```
 
-* (Optional) Change pip source for faster installation if network issues occur:
+* (Optional) Change pip source for faster installation if encountering network issues:
   ```bash
   pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
   ```
@@ -51,7 +75,7 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
   pip install -r requirements.txt
   ```
 
-### 🏃 Walk through InterHub with a Mini Dataset
+### Walk through InterHub with a Mini Dataset
 
 * A subset of the original *interaction_multi* dataset is provided in `data/0_origin_datasets/interaction_multi` for a quick try. Unify the data with:
   ```bash
@@ -68,7 +92,6 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
   python 2_case_visualize.py --cache_location data/1_unified_cache/interaction_multi --interaction_idx_info data/2_extracted_results/results.csv --top_n 3
   ```
   See `figs/case` for visualization results.
----
 
 ## Full Working Flows with InterHub
 
@@ -111,7 +134,7 @@ Run `3_paper_plot.py` to plot results in the paper using metadata of interaction
 
 ---
 
-## 📜 Citation
+## Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.
 
 
