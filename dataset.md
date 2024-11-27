@@ -3,7 +3,7 @@
 
 ## Prerequisites for handling the original datasets in InterHub
 
-We provide the unified and processed interaction event extracted from multiple public datasets in the full [Interhub dataset](https://lianjie.link/interhub) which are ready to use. But if you want to extract the interaction events from the original datasets, you will need to install the following devkits and/or package dependencies:
+We provide the unified and processed interaction event extracted from multiple public datasets in the full [Interhub dataset](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754) which are ready to use. But if you want to extract the interaction events from the original datasets, you will need to install the following devkits and/or package dependencies:
 ```
 # For Lyft
 pip install "trajdata[lyft]"

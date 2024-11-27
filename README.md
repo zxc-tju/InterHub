@@ -4,25 +4,22 @@
 
 </p>
 
-
-
-
 <br/>
 
 > [**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**](https://arxiv.org/xxxxx)  <br>
-> [Xiyan Jiang](https://tops.tongji.edu.cn/info/1161/2143.htm)<sup>1</sup>, [Xiaocong Zhao](https://zxc-tju.github.io/)<sup>1,*</sup>, [Jian Sun](https://tops.tongji.edu.cn/info/1031/1187.htm)<sup>1</sup>, [Yiru Liu](https://tops.tongji.edu.cn/info/1131/1810.htm)<sup>1</sup>, [Zirui Li](https://lzrbit.github.io/)<sup>2</sup>, [Peng Hang](https://tops.tongji.edu.cn/info/1031/1383.htm)<sup>1</sup>, and Lu Xiong<sup>1</sup>  <br>
-> <sup>1</sup> Tongji University, <sup>2</sup> Beijing Institute of Technology<br>
-<sup> * </sup> Correspondance: zhaoxc@tongji.edu.cn
+> [Xiyan Jiang](https://tops.tongji.edu.cn/info/1161/2143.htm)<sup>1</sup>, [Xiaocong Zhao](https://zxc-tju.github.io/)<sup>1,\*</sup>, [Yiru Liu](https://tops.tongji.edu.cn/info/1131/1810.htm)<sup>1</sup>, [Zirui Li](https://lzrbit.github.io/)<sup>2</sup>, [Peng Hang](https://tops.tongji.edu.cn/info/1031/1383.htm)<sup>1</sup>, Lu Xiong<sup>1</sup>, and [Jian Sun](https://tops.tongji.edu.cn/info/1031/1187.htm)<sup>1,\*</sup>  <br>
+> <sup>1</sup> Tongji University, <sup>2</sup> Beijing Institute of Technology
+<br>
+<sup> * </sup> Correspondance: zhaoxc@tongji.edu.cn, sunjian@tongji.edu.cn
 
+This repo is intended to serve as a starting point for driving-interaction-related research. We provide (a) a publicly accessible dataset [InterHub](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754) with rich interaction events and (b) tools for interaction extraction.
 
-This repo is intended to serve as a starting point for driving-interaction-related research. We provide a publicly accessible dataset with rich interaction events and tools for interaction extraction.
-
-<table align="center">
-    <tr>
+<table align="center" style="border: none;">
+    <tr style="background-color: transparent;">
         <td><img src="image/teaser_1.gif" alt="Teaser GIF 1" width="360" height="240"></td>
         <td><img src="image/teaser_2.gif" alt="Teaser GIF 2" width="360" height="240"></td>
     </tr>
-    <tr>
+    <tr style="background-color: transparent;">
         <td><img src="image/teaser_3.gif" alt="Teaser GIF 3" width="360" height="240"></td>
         <td><img src="image/teaser_4.gif" alt="Teaser GIF 4" width="360" height="240"></td>
     </tr>
@@ -45,8 +42,14 @@ We offer three tools to help users navigate **InterHub**:
 
 * **1_interaction_extract.py** extracts interactive segments from unified driving records.
 
-* **2_case_visualize.py** creates GIFs to visualize interaction cases in **InterHub**, showcasing typical scenarios.
+* **2_case_visualize.py** showcases typical interaction scenarios in **InterHub**.
 
+## To Do
+- [ ] Preprint paper release
+- [ ] Supplementary material, video, slides
+- [x] Visualization scripts
+- [x] Installation tutorial
+- [x] Initial repo
 
 ## Quick Start
 
@@ -75,11 +78,11 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
   pip install -r requirements.txt
   ```
 
-### Walk through InterHub with a Mini Dataset
+### Walk through InterHub with a mini dataset
 
 * A subset of the original *interaction_multi* dataset is provided in `data/0_origin_datasets/interaction_multi` for a quick try. Unify the data with:
   ```bash
-  python 0_data_unify.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --data_dirs data/0_origin_datasets/interaction_multi
+  python 0_data_unify.py --desired_data interaction_multi --load_path data/1_unified_cache/interaction_multi --save_path data/0_origin_datasets/interaction_multi
   ```
 
 * Extract interaction events from the subset:
@@ -97,11 +100,11 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
 
 ### 1. Data Unification
 
-**1.1 For ready-to-use interaction data in InterHub**, download and use the data from [InterHub](https://lianjie.link/interhub), unzip it, and place it in the `data/1_unified_cache` folder. Proceed to [2. Interaction Event Extract](#2-interaction-event-extract).
+**1.1 For ready-to-use interaction data in InterHub**, download and use the data from [InterHub](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754), unzip it, and place it in the `data/1_unified_cache` folder. Proceed to [2. Interaction Event Extract](#2-interaction-event-extract).
 
 **1.2 For working from scratch or extracting from other data resources**, the origin datasets are necessary. Refer to [Datasets](#datasets) for details on building the needed dataset structure. Preprocess the dataset to form a data cache if using initial or unprocessed datasets.
 
-For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `1_Data_unify.py` provides scripts for preprocessing raw data into a unified data cache. The project [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) is used in this step. Replace arguments according to the dataset you want to process:
+For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `0_data_unify.py` provides scripts for preprocessing raw data into a unified data cache. The project [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) is used in this step. Replace arguments according to the dataset you want to process:
 
 - **desired_data**: List of datasets to process, e.g., `["interaction_multi"]`. See support list in [dataset.md](dataset.md).
 
@@ -110,10 +113,18 @@ For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `1_Data_unify.py` p
 - **cache_location**: Path where the generated cache will be stored. Ensure enough memory, e.g., `'data/1_unified_cache/interaction_multi'`.
 ---
 
+```bash
+python 0_data_unify.py \
+--desired_data 'waymo_train' \
+--load_path r'H:\dataset\waymo_100-199' \
+--save_path r'H:\dataset\waymo_100-199\cache' \
+--processes 14
+```
+
 ### 2. Interaction Event Extraction
 
 ```bash
-python 2_Interaction_extract.py \
+python 1_interaction_extract.py \
 --desired_data dataset_name \
 --cache_location path/to/your/dataset/cache \
 --save_path path/to/save/your/result \
