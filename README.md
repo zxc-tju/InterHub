@@ -6,7 +6,7 @@
 
 <br/>
 
-> [**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**](https://arxiv.org/xxxxx)  <br>
+> [**InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving**](https://arxiv.org/abs/2411.18302)  <br>
 > [Xiyan Jiang](https://tops.tongji.edu.cn/info/1161/2143.htm)<sup>1</sup>, [Xiaocong Zhao](https://zxc-tju.github.io/)<sup>1,\*</sup>, [Yiru Liu](https://tops.tongji.edu.cn/info/1131/1810.htm)<sup>1</sup>, [Zirui Li](https://lzrbit.github.io/)<sup>2</sup>, [Peng Hang](https://tops.tongji.edu.cn/info/1031/1383.htm)<sup>1</sup>, Lu Xiong<sup>1</sup>, and [Jian Sun](https://tops.tongji.edu.cn/info/1031/1187.htm)<sup>1,\*</sup>  <br>
 > <sup>1</sup> Tongji University, <sup>2</sup> Beijing Institute of Technology
 <br>
@@ -14,17 +14,10 @@
 
 This repo is intended to serve as a starting point for driving-interaction-related research. We provide (a) a publicly accessible dataset [InterHub](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754) with rich interaction events and (b) tools for interaction extraction.
 
-<table align="center" style="border: none;">
-    <tr style="background-color: transparent;">
-        <td><img src="image/teaser_1.gif" alt="Teaser GIF 1" width="360" height="240"></td>
-        <td><img src="image/teaser_2.gif" alt="Teaser GIF 2" width="360" height="240"></td>
-    </tr>
-    <tr style="background-color: transparent;">
-        <td><img src="image/teaser_3.gif" alt="Teaser GIF 3" width="360" height="240"></td>
-        <td><img src="image/teaser_4.gif" alt="Teaser GIF 4" width="360" height="240"></td>
-    </tr>
-</table>
-<br/>
+| ![Teaser GIF 1](image/teaser_1.gif) | ![Teaser GIF 2](image/teaser_2.gif) |
+|--------------------------------------|--------------------------------------|
+| ![Teaser GIF 3](image/teaser_3.gif) | ![Teaser GIF 4](image/teaser_4.gif) |
+
 
 ## Roadmap
 
@@ -45,11 +38,11 @@ We offer three tools to help users navigate **InterHub**:
 * **2_case_visualize.py** showcases typical interaction scenarios in **InterHub**.
 
 ## To Do
-- [ ] Preprint paper release
 - [ ] Supplementary material, video, slides
-- [x] Visualization scripts
-- [x] Installation tutorial
-- [x] Initial repo
+- [x] Preprint paper release 20241128
+- [x] Visualization scripts 20241106
+- [x] Installation tutorial 20241106
+- [x] Initial repo 20241019
 
 ## Quick Start
 
@@ -147,6 +140,15 @@ Run `3_paper_plot.py` to plot results in the paper using metadata of interaction
 
 ## Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.
+
+```bibtex
+@article{jiang2024interhub,
+  title={InterHub: A Naturalistic Trajectory Dataset with Dense Interaction for Autonomous Driving},
+  author={Jiang, Xiyan and Zhao, Xiaocong and Liu, Yiru and Li, Zirui and Hang, Peng and Xiong, Lu and Sun, Jian},
+  journal={arXiv preprint arXiv:2411.18302},
+  year={2024},
+  doi={10.48550/arXiv.2411.18302}
+}
 
 
 
