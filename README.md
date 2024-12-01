@@ -73,14 +73,20 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
 
 ### Walk through InterHub with a mini dataset
 
+* Install required trajdata package for the mini dataset from INTERACTION:
+
+  ```bash
+  pip install "trajdata[interaction]"
+  ```
+
 * A subset of the original *interaction_multi* dataset is provided in `data/0_origin_datasets/interaction_multi` for a quick try. Unify the data with:
   ```bash
-  python 0_data_unify.py --desired_data interaction_multi --load_path data/1_unified_cache/interaction_multi --save_path data/0_origin_datasets/interaction_multi
+  python 0_data_unify.py --desired_data interaction_multi --load_path data/0_origin_datasets/interaction_multi --save_path data/1_unified_cache
   ```
 
 * Extract interaction events from the subset:
   ```bash
-  python 1_Interaction_extract.py --desired_data interaction_multi --cache_location data/1_unified_cache/interaction_multi --save_path data/2_extracted_results
+  python 1_interaction_extract.py --desired_data interaction_multi --cache_location data/1_unified_cache --save_path data/2_extracted_results
   ```
 
 * Visualize the interaction events:
@@ -95,7 +101,7 @@ Ensure the following prerequisites are satisfied. We recommend using conda for P
 
 **1.1 For ready-to-use interaction data in InterHub**, download and use the data from [InterHub](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754), unzip it, and place it in the `data/1_unified_cache` folder. Proceed to [2. Interaction Event Extract](#2-interaction-event-extract).
 
-**1.2 For working from scratch or extracting from other data resources**, the origin datasets are necessary. Refer to [Datasets](#datasets) for details on building the needed dataset structure. Preprocess the dataset to form a data cache if using initial or unprocessed datasets.
+**1.2 For working from scratch or extracting from other data resources**, the origin datasets are necessary. Refer to [dataset.md](dataset.md) for details on building the needed dataset structure. Preprocess the dataset to form a data cache if using initial or unprocessed datasets.
 
 For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `0_data_unify.py` provides scripts for preprocessing raw data into a unified data cache. The project [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) is used in this step. Replace arguments according to the dataset you want to process:
 
@@ -104,13 +110,12 @@ For datasets including **INTERACTION, nuPlan, Waymo, lyft**, `0_data_unify.py` p
 - **load_path**: Path where raw data is stored, e.g., `'data/0_origin_datasets/interaction_multi'`.
 
 - **cache_location**: Path where the generated cache will be stored. Ensure enough memory, e.g., `'data/1_unified_cache/interaction_multi'`.
----
 
 ```bash
 python 0_data_unify.py \
 --desired_data 'waymo_train' \
---load_path r'H:\dataset\waymo_100-199' \
---save_path r'H:\dataset\waymo_100-199\cache' \
+--load_path path/to/your/dataset \
+--save_path path/to/your/dataset/cache \
 --processes 14
 ```
 
@@ -137,6 +142,13 @@ Run `2_case_visualize.py` to plot interaction segments and generate GIFs.
 Run `3_paper_plot.py` to plot results in the paper using metadata of interaction events in the full InterHub dataset.
 
 ---
+
+
+## Acknowledgment & Disclaimer
+
+This project, InterHub, incorporates code from [trajdata](https://github.com/NVlabs/trajdata), developed by NVIDIA Research. We are not affiliated with NVIDIA or the contributors of trajdata. We extend our sincere gratitude to the trajdata team for their outstanding work in simplifying trajectory data processing.
+
+The use of trajdata code in this project is in accordance with their original license terms. All rights and credits for the trajdata components belong to their respective owners.
 
 ## Citation
 If you find this repository useful for your research, please consider giving us a star 🌟 and citing our paper.
