@@ -1,7 +1,5 @@
-import logging
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
-
 from shapely.geometry import LineString
 from trajdata import MapAPI, VectorMap
 from trajdata.data_structures import AgentType
@@ -9,9 +7,6 @@ from utils.trajdata_utils import DataFrameCache
 from utils.AccelerationCalculator import MultiProcess, AccelerationCalculate
 from utils.IntersectionDetector import IntersectionDetector
 
-# Set up the logger
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 class SceneProcessor:
     """Process individual scenes within the dataset."""
@@ -86,7 +81,6 @@ class SceneProcessor:
             self.agent_states, self.all_timesteps, self.column_dict, 
             self.all_agents, move_agent, map_processed_data
         )
-        logger.info('car_intersection_point_each_timestamp...')
 
         time_dic = intersectiondetector.intersection_detector()
         pair_list = self.multi_processor.extract_interactions(time_dic)
