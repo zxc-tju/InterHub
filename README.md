@@ -24,7 +24,7 @@ This repo is intended to serve as a starting point for driving-interaction-relat
 > Naturalistic driving datasets are reorganized using a unified data interface [trajdata](https://github.com/NVlabs/trajdata?tab=readme-ov-file#data-preprocessing-optional) to provide extensibility and easy access to multiple driving data resources. Then, driving interaction events covering a wide range of interaction archetypes, as well as their combinations, are extracted using the formal method. Rich features of the extracted scenarios, including interaction intensity, AV involvement, and conflict type, are analyzed and annotated to support applications with varied needs regarding driving interaction data.
 
 <div align="center">
-<img src="image/roadmap.png"/>
+<img src="image/roadmap_Interhub.png"/>
 </div>
 
 ## Overview
@@ -129,7 +129,7 @@ python 1_interaction_extract.py \
 --timerange=5
 ```
 
-Replace `cache_location` and `save_path` with your paths. For details, refer to the parameter settings in the [Get trajdata cache](#get-trajdata-cache) section. By default, a subset of `interaction_multi` dataset is read from the `data/1_unified_cache` folder.
+Replace `cache_location` and `save_path` with your paths. By default, a subset of `interaction_multi` dataset is read from the `data/1_unified_cache` folder.
 
 ---
 
