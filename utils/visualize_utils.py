@@ -8,7 +8,6 @@ from shapely.geometry import box
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-
 from trajdata import MapAPI
 
 from utils.trajdata_utils import DataFrameCache, get_agent_states

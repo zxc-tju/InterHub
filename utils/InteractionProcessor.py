@@ -82,13 +82,13 @@ class InteractionProcessorTraj:
 
     def process(self):
         results_list = []
-        scenes_list = list(self.dataset.scenes())  # 将生成器转换为列表
-        num_scenes = len(scenes_list)  # 获取场景数量
-        batch_size = 100  # 每批次处理的场景数量
+        scenes_list = list(self.dataset.scenes())  # Convert generator to list
+        num_scenes = len(scenes_list)  # Get total number of scenes
+        batch_size = 100  # Number of scenes to process per batch
 
-        # 初始化一个tqdm进度条
+        # Initialize tqdm progress bar
         with tqdm(total=num_scenes, desc="Processing Scenes", unit="scene") as pbar:
-            # 按批次提交任务
+            # Submit tasks in batches
             for start_idx in range(0, num_scenes, batch_size):
                 end_idx = min(start_idx + batch_size, num_scenes)
                 batch_scenes = scenes_list[start_idx:end_idx]
@@ -107,10 +107,9 @@ class InteractionProcessorTraj:
                         # except Exception as e:
                         #     logger.error(f"Error processing scene {idx}: {e}")
                         # finally:
-                        # 更新进度条
                         pbar.update(1)
 
-        # 保存所有结果到CSV文件
+        # Save all results to CSV file
         col_name = ["dataset", "scenario_idx", "track_id", "start", "end",
                     'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included']
         results_df = pd.DataFrame(results_list, columns=col_name)
@@ -138,7 +137,7 @@ class InteractionProcessorTraj:
         scene_results = scene_processor.process_scene(
             self.time_dic_output, self.a_min_dict, self.multi_a_min_dict, self.delta_TTCP_dict, self.results
         )
-        # 显式删除不再需要的对象并进行垃圾回收
+
         del scene_processor, desired_scene
         gc.collect()
 

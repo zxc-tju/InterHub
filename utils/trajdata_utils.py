@@ -18,32 +18,32 @@ def load_random_scene(cache_path: Path, env_name: str, scene_dt: float) -> Scene
 
 
 def print_lane_connections(vector_map: VectorMap, lane_id: str):
-    # 获取特定的车道对象
+    # Get the specific lane object
     lane = vector_map.get_road_lane(lane_id)
 
-    # 打印上游车道
+    # Print upstream lanes
     print("Previous Lanes:")
     for prev_lane_id in lane.prev_lanes:
         print(f"  - {prev_lane_id}")
 
-    # 打印下游车道
+    # Print downstream lanes
     print("Next Lanes:")
     for next_lane_id in lane.next_lanes:
         print(f"  - {next_lane_id}")
 
-    # 打印左侧相邻车道
+    # Print left adjacent lanes
     print("Adjacent Lanes Left:")
     for left_lane_id in lane.adj_lanes_left:
         print(f"  - {left_lane_id}")
 
-    # 打印右侧相邻车道
+    # Print right adjacent lanes
     print("Adjacent Lanes Right:")
     for right_lane_id in lane.adj_lanes_right:
         print(f"  - {right_lane_id}")
 
-def current_lane_id(lane_kd_tree, query_point, distance_threshold = 3, heading_threshold = 20):  # m, agle   # 使用适当的距离阈值和朝向阈值进行查询
-    heading_threshold = np.pi /heading_threshold # 朝向阈值，单位是弧度
-    # 获取可能的车道索引
+def current_lane_id(lane_kd_tree, query_point, distance_threshold = 3, heading_threshold = 20):  # m, angle   # Use appropriate distance and heading thresholds for querying
+    heading_threshold = np.pi /heading_threshold # Heading threshold in radians
+    # Get possible lane indices
     lane_indices = lane_kd_tree.current_lane_inds(
         xyzh=query_point,
         distance_threshold=distance_threshold,
