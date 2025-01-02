@@ -1,6 +1,33 @@
 
 # Dataset
 
+## Dataset Information
+
+The **metadata file** provided in InterHub is stored in csv format, and the columns and descriptions are as follows:
+
+| Column               | Data Type | Information                                                                                                                      |
+|----------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------|
+| `dataset`            | `str`     | ID of the dataset: One of `{'nuplan_train', 'waymo_train', 'interaction_single', 'interaction_multi', 'lyft_train_full'}`.       |
+| `folder`               | `str`     | Parent folder of the cache file. **For each scenario, please read the corresponding cache file from the Parent folder.**                                                                                              |
+| `scenario_idx`       | `int64`   | Index of the scenario.                                                                                                          |
+| `track_id`           | `str`     | Agent ID of vehicles involved in the interaction: Separated by semicolons (`;`).                                               |
+| `start`              | `float`   | Start time of the interaction segment.                                                                                          |
+| `end`                | `float`   | End time of the interaction segment.                                                                                            |
+| `intensity`          | `float`   | Intensity of the interaction segment.                                                                                           |
+| `PET`                | `float`   | PET (Post-Encroachment Time) of the interaction segment.                                                                        |
+| `two/multi`      | `str`     | Number of vehicles involved in the interaction: One of `{'two', 'multi'}`.                                                     |
+| `vehicle_type`       | `str`     | The type of each vehicle involved in the interaction (e.g., `['HV', 'AV']`, where `HV` stands for human-driven vehicles and `AV` stands for autonomous vehicles). |
+| `AV_included`        | `str`     | Whether autonomous vehicles are involved in the interaction: One of `{'all_HV', 'AV'}`.                                        |
+| `key_agents`         | `str`     | The IDs of the two key vehicles in the interaction: Separated by semicolons (`;`).                                             |
+| `pre-int_step_i`     | `int64`   | Time step for valid data selected **before** the intersection of the first vehicle in `key_agents`: Default is `50`. A value less than `50` indicates insufficient valid trajectory points. |
+| `post-int_step_i`    | `int64`   | Time step for valid data selected **after** the intersection of the first vehicle in `key_agents`: Default is `50`. A value less than `50` indicates insufficient valid trajectory points. |
+| `pre-int_step_j`     | `int64`   | Time step for valid data selected **before** the intersection of the second vehicle in `key_agents`: Default is `50`. A value less than `50` indicates insufficient valid trajectory points. |
+| `post-int_step_j`    | `int64`   | Time step for valid data selected **after** the intersection of the second vehicle in `key_agents`: Default is `50`. A value less than `50` indicates insufficient valid trajectory points. |
+| `path_relationship`  | `str`     | The trajectory relationship label between `key_agents`: One of `{'CP', 'MP', 'HO', 'F'}`.                                           |
+| `pre-post_direction` | `str`     | The driving direction relationship label **before** and **after** the intersection (e.g., `P-M`, `C-O`). <br> - `P-M`: The two agents were running parallel (`P`) before the intersection and merged (`M`) after the intersection. <br> - `C-O`: The two agents were running crossed (`C`) before the intersection and opposite (`O`) after the intersection. |
+| `turn_label`         | `str`     | The turning direction of the two vehicles: Recorded in the `td_i-td_j` format, where `td_i` and `td_j` represent the turning directions, each being one of: <br> - `S` (straight) <br> - `L` (left turn) <br> - `R` (right turn) <br> - `U` (U-turn). |
+| `priority_label`     | `str`     | The ID of the vehicle with right of priority among the `key_agents`.                                                           |
+
 ## Prerequisites for handling the original datasets in InterHub
 
 We provide the unified and processed interaction event extracted from multiple public datasets in the full [Interhub dataset](https://figshare.com/articles/dataset/_b_InterHub_A_Naturalistic_Trajectory_Dataset_with_Dense_Interaction_for_Autonomous_Driving_b_/27899754) which are ready to use. But if you want to extract the interaction events from the original datasets, you will need to install the following devkits and/or package dependencies:

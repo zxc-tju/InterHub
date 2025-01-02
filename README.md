@@ -29,6 +29,7 @@ This repo is intended to serve as a starting point for driving-interaction-relat
 
 ## Overview
 
+### Toolkit
 We offer three tools to help users navigate **InterHub**:
 
 * **0_data_unify.py** converts various data resources into a unified format for seamless interaction event extraction.
@@ -36,6 +37,25 @@ We offer three tools to help users navigate **InterHub**:
 * **1_interaction_extract.py** extracts interactive segments from unified driving records.
 
 * **2_case_visualize.py** showcases typical interaction scenarios in **InterHub**.
+
+### InterHub
+
+Referencing the method proposed in [Li G, Jiao Y, Calvert S C, et al.](https://doi.org/10.1016/j.trc.2024.104802) (with our approach considering merging scenarios), we classify the interaction into 12 categories based on the driving direction relationship between two key agents before and after the intersection:
+
+<div align="center">
+<img src="image/Semantic_Label.png"/>
+</div>
+
+In addition to indexing and tracing information about interaction scenarios, we also provide the following interesting labels to facilitate more targeted retrieval and utilization of interaction scenarios.
+
+| Column               | Data Type | Information                                                                                                                      |
+|----------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------|
+| `key_agents`         | `str`     | The IDs of the two key vehicles in the interaction: Separated by semicolons (`;`).                                             |
+| `pre-post_direction` | `str`     | The driving direction relationship label **before** and **after** the intersection (e.g., `P-M`, `C-O`). <br> - `P-M`: The two agents were running parallel (`P`) before the intersection and merged (`M`) after the intersection. <br> - `C-O`: The two agents were running crossed (`C`) before the intersection and opposite (`O`) after the intersection. |
+| `turn_label`         | `str`     | The turning direction of the two vehicles: Recorded in the `td_i-td_j` format, where `td_i` and `td_j` represent the turning directions, each being one of: <br> - `S` (straight) <br> - `L` (left turn) <br> - `R` (right turn) <br> - `U` (U-turn). |
+| `priority_label`     | `str`     | The ID of the vehicle with right of priority among the `key_agents`.                                                           |
+
+For the full dataset information, please refer to [Dataset Information](dataset.md#dataset-information).
 
 ## To Do
 - [ ] Supplementary material, video, slides
