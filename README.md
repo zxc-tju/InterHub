@@ -51,7 +51,7 @@ In addition to indexing and tracing information about interaction scenarios, we 
 | Column               | Data Type | Information                                                                                                                      |
 |----------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------|
 | `key_agents`         | `str`     | The IDs of the two key vehicles in the interaction: Separated by semicolons (`;`).                                             |
-| `pre-post_direction` | `str`     | The driving direction relationship label **before** and **after** the intersection (e.g., `P-M`, `C-O`). <br> - `P-M`: The two agents were running parallel (`P`) before the intersection and merged (`M`) after the intersection. <br> - `C-O`: The two agents were running crossed (`C`) before the intersection and opposite (`O`) after the intersection. |
+| `path_relation` | `str`     | The driving direction relationship label **before** and **after** the intersection (e.g., `P-M`, `C-O`). <br> - `P-M`: The two agents were running parallel (`P`) before the intersection and merged (`M`) after the intersection. <br> - `C-O`: The two agents were running crossed (`C`) before the intersection and opposite (`O`) after the intersection. |
 | `turn_label`         | `str`     | The turning direction of the two vehicles: Recorded in the `td_i-td_j` format, where `td_i` and `td_j` represent the turning directions, each being one of: <br> - `S` (straight) <br> - `L` (left turn) <br> - `R` (right turn) <br> - `U` (U-turn). |
 | `priority_label`     | `str`     | The ID of the vehicle with right of priority among the `key_agents`.                                                           |
 
@@ -59,6 +59,7 @@ For the full dataset information, please refer to [Dataset Information](dataset.
 
 ## To Do
 - [ ] Supplementary material, video, slides
+- [x] Supplementary code of the interactive label 20250410
 - [x] Preprint paper release 20241128
 - [x] Visualization scripts 20241106
 - [x] Installation tutorial 20241106

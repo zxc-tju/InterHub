@@ -29,6 +29,7 @@ for rank, (idx, row) in enumerate(top_rows.iterrows(), start=1):
     end = int(row['end'])
     interact_ids = row['track_id'].split(';')
     intensity = row['intensity']
+    path_relation = row['path_relation']
 
     # print the processing details
     print(f"Processing Top {rank}: {raw_scene_id}, {start}, {end}, {interact_ids}")
@@ -75,15 +76,15 @@ for rank, (idx, row) in enumerate(top_rows.iterrows(), start=1):
     # loop through each timestamp to generate images
     for timestamp in all_timesteps:
         draw_pic(
-            desired_scene, all_agents, all_timesteps, dataset, id_rawid, raw_scene_id,
-            interact_ids, timestamp, start, end, dt, considertime, gif_path
+            desired_scene, all_agents, all_timesteps, dataset, id_rawid, raw_scene_id,path_relation,
+            interact_ids, timestamp, start, end, dt, considertime, gif_path, 
         )
         
         interact_ids_str = '_'.join(interact_ids)
         pic_list.append(f'{gif_path}/{interact_ids_str}_{timestamp}.png')
 
     # create gif from the generated images
-    gif_file = f"{gif_path}/gif/Top_{rank}_{raw_scene_id}_{start}-{end}.gif"
+    gif_file = f"{gif_path}/gif/Top_{rank}_{raw_scene_id}_{start}-{end}_{path_relation}.gif"
     os.makedirs(os.path.dirname(gif_file), exist_ok=True)
     images = [imageio.imread(image_file) for image_file in pic_list]
     imageio.mimsave(gif_file, images, fps=5)

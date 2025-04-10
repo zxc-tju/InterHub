@@ -280,7 +280,7 @@ class AccelerationCalculate(MultiProcess):
 
         # Dictionary to store acceleration information for each timestamp
         timestamp_a = {}
-
+        sub_pair_value = {}
         # Iterate through each timestamp
         for timestamp_now in self.all_timesteps:
             current_a_min_dict = {}
@@ -295,7 +295,6 @@ class AccelerationCalculate(MultiProcess):
             # Iterate over each pair of interacting agents (multiple agents per pair)
             for pair_multi, pair_dis in current_time_data.items():  # pair_multi represents the group of interacting agents
                 pair_info = {}
-                id_list = list(pair_multi)
 
                 # Iterate through each pair within the multi-agent interaction group
                 for (id_1, id_2), (dis1, dis2, _, t_diff) in pair_dis.items():
@@ -309,12 +308,20 @@ class AccelerationCalculate(MultiProcess):
                 # Calculate minimum acceleration and related metrics for the pair group
                 a_min, success, solution, min_pet, mean_pet = self.MultiCalculateAcceleration(pair_info, pair_multi, timestamp_now)
 
+                agent_acceleration = {agent_id: acceleration for agent_id, acceleration in zip(pair_multi, solution[:len(pair_multi)])}
                 # Store the solution (accelerations) for the current group
                 pair_len = len(pair_multi)
                 solution_tuple = tuple(solution[:pair_len])
                 current_a_min_dict[pair_multi] = (a_min, solution_tuple, min_pet, mean_pet)
+                
+                for pair in pair_info.keys():
+                    if pair not in sub_pair_value: 
+                        sub_pair_value[pair] = [0] * len(self.all_timesteps)
+                    sum_of_acceleration = sum(abs(agent_acceleration[agent_id]) for agent_id in pair)
+                    if sum_of_acceleration > 0.01:
+                        sub_pair_value[pair][timestamp_now] = sum_of_acceleration
+
 
             # Save the acceleration information for the current timestamp
             timestamp_a[timestamp_now] = current_a_min_dict
-
-        return timestamp_a
+        return timestamp_a, sub_pair_value

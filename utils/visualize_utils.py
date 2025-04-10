@@ -430,7 +430,7 @@ def plot_non_interacting_agent(line_x, line_y, x, y, angle):
 
 
 
-def draw_pic(desired_scene, all_agents, all_timesteps, dataset, id_rawid, raw_scene_id, interact_ids, timestamp, start, end, dt, considertime, save_path="./"):
+def draw_pic(desired_scene, all_agents, all_timesteps, dataset, id_rawid, raw_scene_id, path_relation,interact_ids, timestamp, start, end, dt, considertime, save_path="./"):
     """
     Draws a scene showing the interaction trajectories of selected agents within a given scene.
 
@@ -494,7 +494,7 @@ def draw_pic(desired_scene, all_agents, all_timesteps, dataset, id_rawid, raw_sc
     # Set up the plot appearance
     plt.xlabel('X Position')
     plt.ylabel('Y Position')
-    plt.title(f'Track {interact_ids} at Timestamp {timestamp}')
+    plt.title(f'Track {interact_ids} at Timestamp {timestamp}_{path_relation}')
     plt.xlim(x_min, x_max)  # Set X axis range
     plt.ylim(y_min, y_max)  # Set Y axis range
 
