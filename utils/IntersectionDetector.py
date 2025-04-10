@@ -44,13 +44,15 @@ class IntersectionDetector:
             # Create dictionaries to store distance and collision point information
             pair_dis_dic = {(pair[0], pair[1]): dis for pair, dis in zip(track_ids, dis_list) if dis[2]}
             pair_point_dic = {(pair[0], pair[1]): point for pair, point in zip(track_ids, point_list) if point[0]}
+            intersection_dic = {(pair[0], pair[1]): point for pair, point in zip(track_ids, collision_point_list)}
 
             # Store information in time_dict
             time_dict[timestamp] = {
                 'id_list': current_ids,
                 'pair_list': pair_dis_dic.keys(),
                 'pair_dis_dic': pair_dis_dic,
-                'pair_point_dic': pair_point_dic
+                'pair_point_dic': pair_point_dic,
+                'intersection_dic': intersection_dic
             }
 
         return time_dict

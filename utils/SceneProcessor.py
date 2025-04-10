@@ -1,11 +1,12 @@
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from trajdata import MapAPI, VectorMap
 from trajdata.data_structures import AgentType
 from utils.trajdata_utils import DataFrameCache
 from utils.AccelerationCalculator import MultiProcess, AccelerationCalculate
 from utils.IntersectionDetector import IntersectionDetector
+from utils.labeling_utils import Segment_Labeler
 
 
 class SceneProcessor:
@@ -74,22 +75,23 @@ class SceneProcessor:
 
         # Identify moving agents for further processing
         move_agent = self.get_move_agent()
-        map_processed_data: Dict[int, Dict[str, Dict[str, Any]]] = self.get_fut_line(move_agent)
+        self.map_processed_data: Dict[int, Dict[str, Dict[str, Any]]] = self.get_fut_line(move_agent)
 
         # Detect intersections and extract interaction details
         intersectiondetector = IntersectionDetector(
             self.agent_states, self.all_timesteps, self.column_dict, 
-            self.all_agents, move_agent, map_processed_data
+            self.all_agents, move_agent, self.map_processed_data
         )
 
         time_dic = intersectiondetector.intersection_detector()
         pair_list = self.multi_processor.extract_interactions(time_dic)
+        intersection_dic = {key: value['intersection_dic'] for key, value in time_dic.items() if key in pair_list}
 
         # Calculate multi-step accelerations and compile results
-        timestamp_msaa = self.calculator.get_acceleration(
+        timestamp_msaa, sub_pair_value = self.calculator.get_acceleration(
             pair_list, self.agent_states, self.all_agents, self.column_dict, self.all_timesteps
         )
-        scene_results = self.get_results(timestamp_msaa)
+        scene_results = self.get_results(timestamp_msaa, sub_pair_value, intersection_dic)
 
         return scene_results
 
@@ -99,6 +101,7 @@ class SceneProcessor:
             self.column_dict['x'], self.column_dict['y'], self.column_dict['z'], self.column_dict['heading']
         )
 
+        self.lanes = {}
         self.agent_states = np.zeros((len(self.all_agents), self.length_timesteps, 8 + 1))  # x, y, vx, vy, ax, ay, lane
         self.agent_lane_ids = {}
 
@@ -117,6 +120,7 @@ class SceneProcessor:
                     raw_state[x_index], raw_state[y_index], raw_state[z_index]
                 ]))
                 current_lane_id = current_lane.id
+                self.lanes[current_lane.id] = current_lane
 
                 index_agent = list(self.all_agents.keys()).index(name)
                 index_time = self.all_timesteps.index(t)
@@ -174,8 +178,10 @@ class SceneProcessor:
                     [self.column_dict['vx'], self.column_dict['vy']], self.dt,
                     additional_trajectory=trajectory
                 )
+                
         return map_processed_data
-    def get_results(self, timestamp_msaa: Dict[int, Dict[Tuple[int, int], List[float]]]) -> List[List]:
+    
+    def get_results(self, timestamp_msaa: Dict[int, Dict[Tuple[int, int], List[float]]], sub_pair_value: Dict[Tuple[str, str], List[float]], intersection_dic: Dict[int, Dict[Tuple[str, str], Tuple[float, float]]]) -> List[List]:
         """Process and extract results based on the multi-step acceleration array (MSAA).
 
         Args:
@@ -188,8 +194,6 @@ class SceneProcessor:
                         for each pair that meets the criteria.
         """
         acceleration_thresh = 0.01  # Threshold for acceleration values to consider
-        col_name = ["dataset", "scenario_idx", "track_id", "start", "end", 
-                    'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included']
 
         # Convert the dictionary to an array representation
         a_min_matrix, row_labels, col_labels = self.dic_to_array(timestamp_msaa)
@@ -203,7 +207,7 @@ class SceneProcessor:
             track_idx = ";".join(str(id) for id in pair)
             start_time = value[0][0]
             end_time = value[-1][-1]
-
+            
             # Check if the duration of the interaction is greater than 3 timesteps
             if end_time - start_time > 3:
                 # Extract maximum intensity and minimum PET (Post-Encroachment Time)
@@ -217,10 +221,40 @@ class SceneProcessor:
                 vehicle_type = ['HV' if agent_id != 'ego' else 'AV' for agent_id in pair]
                 AV_included = 'AV' if 'ego' in pair else 'all_HV'
 
+
+                # get key_agents
+                if two_multi == 'two':
+                    key_pair = pair
+                    key_agents = track_idx
+                else:
+                    # find key agents
+                    msaa_pair_dict = {key:value[start_time:end_time+1] for key, value in sub_pair_value.items() if (key[0] in pair)&(key[1] in pair)}
+                    max_values = {k: max(v) for k, v in msaa_pair_dict.items()}
+                    key_pair = max(max_values, key=max_values.get)
+                    key_agents = ";".join(str(id) for id in key_pair)
+
+                # get path_relation
+                intersection_point = intersection_dic.get(end_time, {}).get(key_pair, None)
+                if intersection_point is None: 
+                    intersection_point = intersection_dic.get(end_time, {}).get(key_pair[::-1], None)
+                fut_line1, fut_line2 = self.get_line(end_time, key_pair[0], key_pair[1])
+                segment_labeler = Segment_Labeler(self.agent_states, self.all_agents, key_pair, end_time, intersection_point, fut_line1, fut_line2, pair)
+                path_relation, pre_int_i, post_int_i, pre_int_j, post_int_j  = segment_labeler.get_path_relation_label()
+
+                # get path_category
+                path_category = segment_labeler.get_path_category(path_relation)
+
+                # get turn_label
+                turn_label = segment_labeler.get_turn_label()
+
+                # get priority_label
+                priority = segment_labeler.get_priority_label(self.lanes)
+
                 # Append the extracted data to the results list
                 results.append([
                     col_dataset, col_scenario_idx, track_idx, start_time, 
-                    end_time, intensity, PET, two_multi, vehicle_type, AV_included
+                    end_time, intensity, PET, two_multi, vehicle_type, AV_included, key_agents, path_relation, turn_label, priority, path_category,
+                    pre_int_i, post_int_i, pre_int_j, post_int_j
                 ])
 
         return results
@@ -555,4 +589,12 @@ class SceneProcessor:
         future_time = max(0, self.timerange - remaining_time * dt)
 
         return future_time
+    
+    def get_line(self, timestamp, track_id1, track_id2):
+        """
+        get trajectory line for two vehicles at a specific timestamp
+        """
+        line1 = self.map_processed_data[timestamp].get(track_id1, {}).get('line', None)
+        line2 = self.map_processed_data[timestamp].get(track_id2, {}).get('line', None)
+        return line1, line2
 

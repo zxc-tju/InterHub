@@ -110,8 +110,10 @@ class InteractionProcessorTraj:
                         pbar.update(1)
 
         # Save all results to CSV file
-        col_name = ["dataset", "scenario_idx", "track_id", "start", "end",
-                    'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included']
+        col_name = ["dataset", "scenario_idx", "track_id", "start", "end", 
+                    'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included',
+                    'key_agents', 'path_relation', 'turn_label', 'priority_label', 'path_category', 
+                    'pre_int_i', 'post_int_i', 'pre_int_j', 'post_int_j']
         results_df = pd.DataFrame(results_list, columns=col_name)
         os.makedirs(self.save_path, exist_ok=True)
         results_df.to_csv(f'{self.save_path}/results.csv', index=False)
