@@ -59,6 +59,8 @@ For the full dataset information, please refer to [Dataset Information](dataset.
 
 ## To Do
 - [ ] Supplementary material, video, slides
+- [ ] Update `all_results.csv` with traceability for other datasets
+- [x] Update `all_results.csv` with nuplan traceability to original dataset 20251215
 - [x] Preprint paper release 20241128
 - [x] Visualization scripts 20241106
 - [x] Installation tutorial 20241106

@@ -27,6 +27,9 @@ The **metadata file** provided in InterHub is stored in csv format, and the colu
 | `pre-post_direction` | `str`     | The driving direction relationship label **before** and **after** the intersection (e.g., `P-M`, `C-O`). <br> - `P-M`: The two agents were running parallel (`P`) before the intersection and merged (`M`) after the intersection. <br> - `C-O`: The two agents were running crossed (`C`) before the intersection and opposite (`O`) after the intersection. |
 | `turn_label`         | `str`     | The turning direction of the two vehicles: Recorded in the `td_i-td_j` format, where `td_i` and `td_j` represent the turning directions, each being one of: <br> - `S` (straight) <br> - `L` (left turn) <br> - `R` (right turn) <br> - `U` (U-turn). |
 | `priority_label`     | `str`     | The ID of the vehicle with right of priority among the `key_agents`.                                                           |
+| `original_data_file` | `str`     | The original data file name from the source dataset, used for indexing back to the raw data.                                   |
+| `original_scene_id`  | `str`     | The original scene ID from the source dataset, used for indexing back to the raw data.                                         |
+| `original_track_id`  | `str`     | The original track IDs of vehicles involved in the interaction from the source dataset: Separated by semicolons (`;`).        |
 
 ## Prerequisites for handling the original datasets in InterHub
 
