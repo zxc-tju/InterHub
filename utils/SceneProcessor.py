@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Any, Dict, List, Optional, Tuple
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
 from trajdata import MapAPI, VectorMap
 from trajdata.data_structures import AgentType
 from utils.trajdata_utils import DataFrameCache
@@ -35,8 +35,12 @@ class SceneProcessor:
         
         # Initialize all agents in the scene as a dictionary with vehicle type agents only
         self.all_agents = {agent.name: agent for agent in desired_scene.agents if agent.type == AgentType.VEHICLE}
+        self.agent_ids = list(self.all_agents.keys())
+        self.agent_index_by_id = {agent_id: idx for idx, agent_id in enumerate(self.agent_ids)}
         self.length_timesteps = desired_scene.length_timesteps
         self.all_timesteps = range(self.length_timesteps)
+        self.timestep_index_by_ts = {ts: idx for idx, ts in enumerate(self.all_timesteps)}
+        self.final_timestep = max(self.all_timesteps)
 
         # Initialize the cache for the scene and load column information
         self.scene_cache = DataFrameCache(
@@ -102,32 +106,28 @@ class SceneProcessor:
         )
 
         self.lanes = {}
-        self.agent_states = np.zeros((len(self.all_agents), self.length_timesteps, 8 + 1))  # x, y, vx, vy, ax, ay, lane
+        raw_state_dim = max(self.column_dict.values()) + 1
+        self.agent_states = np.zeros((len(self.all_agents), self.length_timesteps, raw_state_dim))
         self.agent_lane_ids = {}
 
         for name, agent in self.all_agents.items():
-            current_lane = None
             self.agent_lane_ids[name] = [0] * self.length_timesteps
+            index_agent = self.agent_index_by_id[name]
 
             for t in range(agent.first_timestep, agent.last_timestep + 1):
                 raw_state = self.scene_cache.get_raw_state(agent_id=name, scene_ts=t)
+                current_lane = self.vec_map.get_closest_lane(
+                    xyz=np.array([raw_state[x_index], raw_state[y_index], raw_state[z_index]])
+                )
+                current_lane_id = 0
+                if current_lane is not None:
+                    current_lane_id = current_lane.id
+                    self.lanes[str(current_lane_id)] = current_lane
 
-                query_point = np.array([
-                    raw_state[x_index], raw_state[y_index], raw_state[z_index], raw_state[heading_index]
-                ])
-
-                current_lane = self.vec_map.get_closest_lane(xyz=np.array([
-                    raw_state[x_index], raw_state[y_index], raw_state[z_index]
-                ]))
-                current_lane_id = current_lane.id
-                self.lanes[current_lane.id] = current_lane
-
-                index_agent = list(self.all_agents.keys()).index(name)
-                index_time = self.all_timesteps.index(t)
+                index_time = self.timestep_index_by_ts[t]
 
                 # Update the agent_states with raw_state data
-                self.agent_states[index_agent, index_time, :-1] = raw_state
-                self.agent_states[index_agent, index_time, -1] = current_lane_id
+                self.agent_states[index_agent, index_time, :] = raw_state[:raw_state_dim]
                 self.agent_lane_ids[agent.name][index_time] = current_lane_id
 
     def get_move_agent(self) -> Dict[int, List[str]]:
@@ -140,7 +140,7 @@ class SceneProcessor:
         for timeindex, timestamp in enumerate(self.all_timesteps):
             # Get all active vehicle IDs at the current timestamp
             current_ids = [
-                list(self.all_agents.keys())[index]
+                self.agent_ids[index]
                 for index, flag in enumerate(self.agent_states[:, timeindex, self.column_dict['vx']])
                 if flag != 0
             ]
@@ -162,15 +162,19 @@ class SceneProcessor:
 
             current_ids = move_agent[timestamp]
             for agent_id in current_ids:
-                track_idx = list(self.all_agents.keys()).index(agent_id)
+                track_idx = self.agent_index_by_id[agent_id]
                 last_nonzero_index = self.find_last_nonzero_index(
                     self.agent_states, track_idx, [self.column_dict['x'], self.column_dict['y']]
                 )
+                if last_nonzero_index is None:
+                    continue
                 max_lane_id = self.agent_lane_ids[agent_id][last_nonzero_index]
-                max_downstream_lane_ids = self.get_downstream_lane_ids(max_lane_id, self.vec_map, 3)
+                max_downstream_lane_ids = []
+                if str(max_lane_id) not in {"0", "-1", "None", "nan", ""}:
+                    max_downstream_lane_ids = self.get_downstream_lane_ids(max_lane_id, self.vec_map, 3)
                 lanes = [max_lane_id, max_downstream_lane_ids]
 
-                trajectory, future_time, x, y, complete_lane, speed, distance = self.process_vehicle_tracks(track_idx, timeindex, lanes)
+                trajectory, _, _, _, _, _, _ = self.process_vehicle_tracks(track_idx, timeindex, lanes)
 
                 map_processed_data[timestamp][agent_id] = self.process_tracks(
                     self.agent_states, track_idx, timeindex, self.timerange,
@@ -182,82 +186,148 @@ class SceneProcessor:
         return map_processed_data
     
     def get_results(self, timestamp_msaa: Dict[int, Dict[Tuple[int, int], List[float]]], sub_pair_value: Dict[Tuple[str, str], List[float]], intersection_dic: Dict[int, Dict[Tuple[str, str], Tuple[float, float]]]) -> List[List]:
-        """Process and extract results based on the multi-step acceleration array (MSAA).
+        """Process MSAA output and emit interaction metadata rows."""
+        acceleration_thresh = 0.01
 
-        Args:
-            timestamp_msaa (Dict[int, Dict[Tuple[int, int], List[float]]]): 
-                Dictionary where each key is a timestamp, and the value is another dictionary.
-                The inner dictionary contains pairs of agents and their interaction metrics.
+        if not timestamp_msaa:
+            return []
 
-        Returns:
-            List[List]: A list of lists where each inner list contains processed interaction details 
-                        for each pair that meets the criteria.
-        """
-        acceleration_thresh = 0.01  # Threshold for acceleration values to consider
-
-        # Convert the dictionary to an array representation
         a_min_matrix, row_labels, col_labels = self.dic_to_array(timestamp_msaa)
         result_segments = self.get_segments(row_labels, col_labels, a_min_matrix, acceleration_thresh)
         results = []
 
-        # Iterate over each interaction pair to extract results
         for pair, value in result_segments.items():
             col_dataset = self.desired_data
+            col_folder = self.desired_data
             col_scenario_idx = self.desired_scene.raw_data_idx
             track_idx = ";".join(str(id) for id in pair)
             start_time = value[0][0]
             end_time = value[-1][-1]
-            
-            # Check if the duration of the interaction is greater than 3 timesteps
-            if end_time - start_time > 3:
-                # Extract maximum intensity and minimum PET (Post-Encroachment Time)
-                msaa_list = [timestamp_msaa[ts].get(pair, [0, None, None, None])[0] for ts in range(start_time, end_time + 1)]
-                intensity = max(msaa_list)
-                mean_pet_list = [timestamp_msaa[ts].get(pair, [None, None, None, 0])[3] for ts in range(start_time, end_time + 1)]
-                PET = min(mean_pet_list)
 
-                # Determine if it's a two-vehicle or multi-vehicle interaction
-                two_multi = 'two' if len(pair) == 2 else 'multi'
-                vehicle_type = ['HV' if agent_id != 'ego' else 'AV' for agent_id in pair]
-                AV_included = 'AV' if 'ego' in pair else 'all_HV'
+            if end_time - start_time <= 3:
+                continue
 
+            msaa_list = [
+                timestamp_msaa[ts].get(pair, [0, None, None, None])[0]
+                for ts in range(start_time, end_time + 1)
+            ]
+            intensity = max(msaa_list)
+            mean_pet_list = [
+                timestamp_msaa[ts].get(pair, [None, None, None, 0])[3]
+                for ts in range(start_time, end_time + 1)
+            ]
+            PET = min(mean_pet_list)
 
-                # get key_agents
-                if two_multi == 'two':
-                    key_pair = pair
-                    key_agents = track_idx
-                else:
-                    # find key agents
-                    msaa_pair_dict = {key:value[start_time:end_time+1] for key, value in sub_pair_value.items() if (key[0] in pair)&(key[1] in pair)}
-                    max_values = {k: max(v) for k, v in msaa_pair_dict.items()}
-                    key_pair = max(max_values, key=max_values.get)
-                    key_agents = ";".join(str(id) for id in key_pair)
+            two_multi = 'two' if len(pair) == 2 else 'multi'
+            vehicle_type = self.get_vehicle_types(pair)
+            AV_included = 'AV' if 'ego' in pair else 'all_HV'
 
-                # get path_relation
-                intersection_point = intersection_dic.get(end_time, {}).get(key_pair, None)
-                if intersection_point is None: 
-                    intersection_point = intersection_dic.get(end_time, {}).get(key_pair[::-1], None)
-                fut_line1, fut_line2 = self.get_line(end_time, key_pair[0], key_pair[1])
-                segment_labeler = Segment_Labeler(self.agent_states, self.all_agents, key_pair, end_time, intersection_point, fut_line1, fut_line2, pair)
-                path_relation, pre_int_i, post_int_i, pre_int_j, post_int_j  = segment_labeler.get_path_relation_label()
+            key_pair, key_agents = self.get_key_pair(pair, two_multi, track_idx, start_time, end_time, sub_pair_value)
+            intersection_point = self.get_intersection_point(intersection_dic, end_time, key_pair)
+            fut_line1, fut_line2 = self.get_line(end_time, key_pair[0], key_pair[1])
+            if intersection_point is None:
+                intersection_point = self.infer_intersection_point(fut_line1, fut_line2)
 
-                # get path_category
+            path_relation = 'Unknown'
+            path_category = 'Unknown'
+            turn_label = 'Unknown'
+            priority = 'Unknown'
+            pre_int_i = post_int_i = pre_int_j = post_int_j = -1
+
+            try:
+                segment_labeler = Segment_Labeler(
+                    self.agent_states,
+                    self.all_agents,
+                    key_pair,
+                    end_time,
+                    intersection_point,
+                    fut_line1,
+                    fut_line2,
+                    pair,
+                    agent_lane_ids=self.agent_lane_ids,
+                )
+                path_relation, pre_int_i, post_int_i, pre_int_j, post_int_j = segment_labeler.get_path_relation_label()
                 path_category = segment_labeler.get_path_category(path_relation)
-
-                # get turn_label
                 turn_label = segment_labeler.get_turn_label()
-
-                # get priority_label
                 priority = segment_labeler.get_priority_label(self.lanes)
+            except Exception:
+                pass
 
-                # Append the extracted data to the results list
-                results.append([
-                    col_dataset, col_scenario_idx, track_idx, start_time, 
-                    end_time, intensity, PET, two_multi, vehicle_type, AV_included, key_agents, path_relation, turn_label, priority, path_category,
-                    pre_int_i, post_int_i, pre_int_j, post_int_j
-                ])
+            trajdata_scene_name = getattr(self.desired_scene, "name", "")
+            original_scene_id = self.get_original_scene_id(trajdata_scene_name)
+            original_data_file = self.get_original_data_file(trajdata_scene_name)
+            original_track_id = self.get_original_track_id(key_pair)
+
+            results.append([
+                col_dataset, col_folder, col_scenario_idx, track_idx, start_time,
+                end_time, intensity, PET, two_multi, vehicle_type, AV_included,
+                key_agents, pre_int_i, post_int_i, pre_int_j, post_int_j,
+                path_category, path_relation, turn_label, priority,
+                original_data_file, original_scene_id, original_track_id,
+            ])
 
         return results
+
+    def get_vehicle_types(self, pair: Tuple[str, ...]) -> List[str]:
+        return ['AV' if agent_id == 'ego' else 'HV' for agent_id in pair]
+
+    def get_key_pair(self, pair, two_multi, track_idx, start_time, end_time, sub_pair_value):
+        if two_multi == 'two':
+            return pair, track_idx
+
+        msaa_pair_dict = {
+            key: value[start_time:end_time + 1]
+            for key, value in sub_pair_value.items()
+            if (key[0] in pair) and (key[1] in pair)
+        }
+        max_values = {key: max(value) for key, value in msaa_pair_dict.items() if value}
+        if not max_values:
+            fallback_pair = tuple(pair[:2])
+            return fallback_pair, ";".join(str(id) for id in fallback_pair)
+
+        key_pair = max(max_values, key=max_values.get)
+        return key_pair, ";".join(str(id) for id in key_pair)
+
+    def get_intersection_point(self, intersection_dic, end_time, key_pair):
+        intersection_point = intersection_dic.get(end_time, {}).get(key_pair, None)
+        if intersection_point is None:
+            intersection_point = intersection_dic.get(end_time, {}).get(key_pair[::-1], None)
+        return intersection_point
+
+    def infer_intersection_point(self, line1, line2):
+        if line1 is None or line2 is None:
+            return None
+        intersection = line1.intersection(line2)
+        if intersection.is_empty:
+            return None
+        if intersection.geom_type == 'Point':
+            return intersection
+        if intersection.geom_type == 'MultiPoint':
+            return list(intersection.geoms)[0]
+        return intersection.centroid
+
+    def get_original_data_file(self, scene_name: str) -> str:
+        if not scene_name:
+            return ""
+        if "_" not in scene_name:
+            return scene_name
+        split, scenario_id = scene_name.split("_", 1)
+        if split in {"train", "val", "test"}:
+            return scenario_id
+        return scene_name
+
+    def get_original_scene_id(self, scene_name: str) -> str:
+        if not scene_name:
+            return ""
+        if "_" not in scene_name:
+            return scene_name
+        split, scenario_id = scene_name.split("_", 1)
+        if split in {"train", "val", "test"}:
+            return scenario_id
+        return scene_name
+
+    def get_original_track_id(self, key_pair: Tuple[Any, Any]) -> str:
+        return ";".join(str(agent_id) for agent_id in key_pair)
 
     def dic_to_array(self, msaa_dict: Dict[int, Dict[Tuple[int, int], List[float]]]) -> Tuple[np.ndarray, List, List]:
         """Convert the MSAA dictionary into a 2D array format.
@@ -372,16 +442,9 @@ class SceneProcessor:
         timestamp_index = int(timestamp_index)
 
         # Extract and filter the track based on the given timerange
-        track = all_tracks[track_id_index, timestamp_index:timestamp_index + timerange, position_index]
-        valid_indices = np.any(track != 0, axis=0)
-
-        # Filter the track based on valid (non-zero) indices
-        track = track[:, valid_indices]
-
-        # Transpose and further filter the track data
-        track_transposed = track.transpose()
-        valid_indices = np.any(track_transposed != 0, axis=1)
-        filtered_track = track_transposed[valid_indices]
+        track = all_tracks[track_id_index, timestamp_index:timestamp_index + timerange][:, position_index]
+        valid_indices = np.any(track != 0, axis=1)
+        filtered_track = track[valid_indices]
 
         if filtered_track.shape[0] < 2:
             # Return if there are fewer than 2 valid points
@@ -389,6 +452,8 @@ class SceneProcessor:
 
         # Create a LineString object from the filtered track points
         line = LineString(filtered_track)
+        if additional_trajectory is not None and len(additional_trajectory) >= 2:
+            line = self.concatenate_trajectory(line, np.asarray(additional_trajectory))
 
         # Calculate the velocity of the vehicle
         v_x, v_y = all_tracks[track_id_index, timestamp_index, v_index]
@@ -532,14 +597,13 @@ class SceneProcessor:
         vec_map = self.vec_map
         lanes = lanes
         lane_id = self.lane_id
-
         # Extract the current x, y coordinates, velocities (vx, vy), and heading angle (h)
         x, y, vx, vy, h = (
-            all_tracks[track_id_index, time_stamp_list.index(max(time_stamp_list)), column_dict['x']],
-            all_tracks[track_id_index, time_stamp_list.index(max(time_stamp_list)), column_dict['y']],
-            all_tracks[track_id_index, time_stamp_list.index(max(time_stamp_list)), column_dict['vx']],
-            all_tracks[track_id_index, time_stamp_list.index(max(time_stamp_list)), column_dict['vy']],
-            all_tracks[track_id_index, time_stamp_list.index(max(time_stamp_list)), column_dict['heading']]
+            all_tracks[track_id_index, timestamp_index, column_dict['x']],
+            all_tracks[track_id_index, timestamp_index, column_dict['y']],
+            all_tracks[track_id_index, timestamp_index, column_dict['vx']],
+            all_tracks[track_id_index, timestamp_index, column_dict['vy']],
+            all_tracks[track_id_index, timestamp_index, column_dict['heading']]
         )
         
         # Calculate the speed of the vehicle based on its velocity components
@@ -583,7 +647,7 @@ class SceneProcessor:
         dt = self.dt
 
         # Calculate the remaining time from the current timestamp to the last timestamp in the list
-        remaining_time = max(time_stamp_list) - timestamp
+        remaining_time = self.final_timestep - timestamp
 
         # Calculate the future time, ensuring it is non-negative
         future_time = max(0, self.timerange - remaining_time * dt)
@@ -597,4 +661,3 @@ class SceneProcessor:
         line1 = self.map_processed_data[timestamp].get(track_id1, {}).get('line', None)
         line2 = self.map_processed_data[timestamp].get(track_id2, {}).get('line', None)
         return line1, line2
-

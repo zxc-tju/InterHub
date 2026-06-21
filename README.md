@@ -62,11 +62,18 @@ In addition to indexing and tracing information about interaction scenarios, we 
 | `turn_label`         | `str`     | The turning direction of the two vehicles: Recorded in the `td_i-td_j` format, where `td_i` and `td_j` represent the turning directions, each being one of: <br> - `S` (straight) <br> - `L` (left turn) <br> - `R` (right turn) <br> - `U` (U-turn). |
 | `priority_label`     | `str`     | The ID of the vehicle with right of priority among the `key_agents`.                                                           |
 
+### Dataset update
+
+`data/3_paperplot_data/all_results.csv` has been updated with AG2 / Argoverse 2 motion forecasting interactions (`av2_motion_forecasting`). During this update, candidate interactions from all datasets were checked with oriented vehicle bounding boxes because AG2 introduced many physical-overlap cases.
+
+The bbox collision check reads vehicle `length` and `width` from the cached agent data when available; otherwise it uses a default passenger-car size of 4.5 m by 1.8 m. Each box is centered on the recorded vehicle position and aligned exactly with the cached heading by default. If the two key-agent boxes have positive overlap area in any checked frame, the row is marked as a collision and excluded from the updated `all_results.csv`.
+
 For the full dataset information, please refer to [Dataset Information](dataset.md#dataset-information).
 
 ## To Do
 - [ ] Supplementary material, video, slides
 - [ ] Update `all_results.csv` with traceability for other datasets
+- [x] Update `all_results.csv` with AG2 / Argoverse 2 data and bbox collision filtering 20260519
 - [x] Update `all_results.csv` with nuplan traceability to original dataset 20251215
 - [x] Our paper published in _Scientific Data_ 20250701
 - [x] Supplementary code of the interactive label 20250410
@@ -147,6 +154,7 @@ python 0_data_unify.py \
 --desired_data 'waymo_train' \
 --load_path path/to/your/dataset \
 --save_path path/to/your/dataset/cache \
+--use_multiprocessing \
 --processes 14
 ```
 
@@ -171,6 +179,18 @@ Run `2_case_visualize.py` to plot interaction segments and generate GIFs.
 
 #### Paper plot
 Run `3_paper_plot.py` to plot results in the paper using metadata of interaction events in the full InterHub dataset.
+
+#### Bbox collision check
+Run the optional bbox collision checker against an interaction metadata CSV and the corresponding trajdata cache:
+
+```bash
+python scripts/check_index_bbox_collisions.py \
+--input-csv data/3_paperplot_data/all_results.csv \
+--cache-root data/1_unified_cache \
+--output-dir data/3_paperplot_data/bbox_collision_check
+```
+
+The checker writes the full checked CSV, a no-collision CSV, a collision CSV, an error CSV, and a JSON summary.
 
 ---
 
@@ -198,6 +218,4 @@ If you find this repository useful for your research, please consider giving us 
 	year = {2025},
 	pages = {1084},
 }
-
-
 

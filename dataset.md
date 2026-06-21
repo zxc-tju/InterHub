@@ -7,7 +7,7 @@ The **metadata file** provided in InterHub is stored in csv format, and the colu
 
 | Column               | Data Type | Information                                                                                                                      |
 |----------------------|-----------|----------------------------------------------------------------------------------------------------------------------------------|
-| `dataset`            | `str`     | ID of the dataset: One of `{'nuplan_train', 'waymo_train', 'interaction_single', 'interaction_multi', 'lyft_train_full'}`.       |
+| `dataset`            | `str`     | ID of the dataset: One of `{'nuplan_train', 'waymo_train', 'interaction_single', 'interaction_multi', 'lyft_train_full', 'av2_motion_forecasting'}`.       |
 | `folder`               | `str`     | Parent folder of the cache file. **For each scenario, please read the corresponding cache file from the Parent folder.**                                                                                              |
 | `scenario_idx`       | `int64`   | Index of the scenario.                                                                                                          |
 | `track_id`           | `str`     | Agent ID of vehicles involved in the interaction: Separated by semicolons (`;`).                                               |

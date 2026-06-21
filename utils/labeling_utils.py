@@ -23,6 +23,8 @@ def get_safe_trajectory_slice(coords, start_idx=-51, end_idx=-1, min_dist=0.1, m
     
     # Get initial slice and filter points
     slice = coords[start:end]
+    if len(slice) == 0:
+        return coords[:0]
     filtered = [slice[0]]
     last_point = slice[0]
     
@@ -127,7 +129,7 @@ class TrajectoryProcessor:
 
 
 class Segment_Labeler:
-    def __init__(self, agent_states, all_agents, key_pair, end_time, intersection_point, fut_line1, fut_line2, pair):
+    def __init__(self, agent_states, all_agents, key_pair, end_time, intersection_point, fut_line1, fut_line2, pair, agent_lane_ids=None):
         self.agent_states = agent_states
         self.all_agents = all_agents
         self.key_pair = key_pair
@@ -135,6 +137,7 @@ class Segment_Labeler:
         self.intersection = intersection_point
         self.fut_line1, self.fut_line2 = fut_line1, fut_line2
         self.interaction_ids = pair
+        self.agent_lane_ids = agent_lane_ids or {}
 
     def _get_lines(self):
         def get_motion_state(agent_states, all_agents, key_agent):
@@ -183,6 +186,8 @@ class Segment_Labeler:
         trajectoryprocessor = TrajectoryProcessor()
 
         self._get_lines()
+        if self.agent1_line is None or self.agent2_line is None or self.intersection is None:
+            raise ValueError("missing trajectory line or intersection point")
 
         # Get trajectory segments before and after the interaction
         after_traj = {
@@ -253,6 +258,8 @@ class Segment_Labeler:
             path_category = 'HO'
         elif path_relation in F_list:
             path_category = 'F'
+        else:
+            path_category = 'Unknown'
         return path_category
 
 
@@ -269,7 +276,7 @@ class Segment_Labeler:
         self.agent_turn_state2 = agent_turn_state2
         return agent_turn_state1 + '-' + agent_turn_state2
     
-    def get_agent_lanes(self, agent_coords, all_lanes):
+    def get_agent_lanes(self, agent_id, agent_coords, all_lanes):
         """
         Get the lanes corresponding to the agent at each timestep.
         Args:
@@ -280,40 +287,58 @@ class Segment_Labeler:
         """
         agent_all_lanes = {}
         for i in range(len(agent_coords)):
-            if agent_coords[i, 7] != 0.0:  # Check if lane_id is valid
+            lane_id = None
+            if agent_id in self.agent_lane_ids and i < len(self.agent_lane_ids[agent_id]):
+                lane_id = str(self.agent_lane_ids[agent_id][i])
+            elif agent_coords.shape[1] > 8 and agent_coords[i, -1] != 0.0:
+                lane_id = str(int(agent_coords[i, -1]))
+
+            if lane_id and lane_id not in {'0', '-1', 'None', 'nan', ''} and lane_id in all_lanes:
                 coords_key = tuple(agent_coords[i, [0, 1, 7]])  # (x, y, heading)
-                lane_id = int(agent_coords[i, -1])
-                agent_all_lanes[coords_key] = all_lanes[str(lane_id)]
+                agent_all_lanes[coords_key] = all_lanes[lane_id]
         return agent_all_lanes
 
     def _get_nearest_lane_heading(self, point, lane):
         """"Get the heading of the nearest point on the lane center line to the input point."""
-        center_line = LineString(lane.center.points[:, :2])
+        center_points = lane.center.points
+        center_line = LineString(center_points[:, :2])
         nearest_point = center_line.interpolate(center_line.project(Point(point)))
         distances = [nearest_point.distance(Point(p)) for p in center_line.coords]
-        return lane.center.points[np.argmin(distances), 3]
+        nearest_idx = int(np.argmin(distances))
+        if center_points.shape[1] > 3:
+            return center_points[nearest_idx, 3]
+        prev_idx = max(0, nearest_idx - 1)
+        next_idx = min(len(center_points) - 1, nearest_idx + 1)
+        direction = center_points[next_idx, :2] - center_points[prev_idx, :2]
+        return np.arctan2(direction[1], direction[0])
 
     def get_lane_in_heading(self, agent_all_lanes):
         """Select lanes that match the agent's heading direction."""
         lane_in_heading = []
         for (x, y, vehicle_heading), lane in agent_all_lanes.items():
             lane_heading = self._get_nearest_lane_heading((x, y), lane)
-            if abs(vehicle_heading - lane_heading) < np.pi/8:
+            heading_diff = abs((vehicle_heading - lane_heading + np.pi) % (2 * np.pi) - np.pi)
+            if heading_diff < np.pi/8:
                 lane_in_heading.append(lane)
         return lane_in_heading
 
     def _build_lane_relation(self, lanes):
         """Build a lane connectivity graph including next, previous, and adjacent lanes."""
-        lanes_id = [lane.id for lane in lanes]
+        lanes_id = [str(lane.id) for lane in lanes]
         relation = {
-            lane.id: lane.next_lanes | lane.prev_lanes | 
-                    lane.adj_lanes_left | lane.adj_lanes_right 
+            str(lane.id): {
+                str(conn_id)
+                for conn_id in (
+                    lane.next_lanes | lane.prev_lanes |
+                    lane.adj_lanes_left | lane.adj_lanes_right
+                )
+            }
             for lane in lanes
         }
         return {
             lane_id: {
                 conn_id for conn_id in connected_lanes 
-                if conn_id in relation.keys() and 
+                if conn_id in relation.keys() and
                 lanes_id.index(conn_id) > lanes_id.index(lane_id)
             }
             for lane_id, connected_lanes in relation.items()
@@ -332,7 +357,6 @@ class Segment_Labeler:
             for neighbor_id in relation.get(current_id, []):
                 if neighbor_id not in visited:
                     path.append(neighbor_id)
-                    current_id = neighbor_id
 
                     if dfs(neighbor_id, visited, path):
                         return True
@@ -340,6 +364,9 @@ class Segment_Labeler:
                     path.pop()
 
             return False
+
+        path = [start_id]
+        return path if dfs(start_id, set(), path) else []
     
     def get_continuous_lanes(self, lanes):
         """
@@ -356,19 +383,19 @@ class Segment_Labeler:
         if not any(relation.values()):
             return [lanes[0]]
             
-        lanes_id = [lane.id for lane in lanes]
+        lanes_id = [str(lane.id) for lane in lanes]
         start_id = next((k for k, v in relation.items() if v), lanes_id[0])
         
         for end_idx in range(len(lanes_id)-1, lanes_id.index(start_id), -1):
             path = self.find_lane_path(relation, start_id, lanes_id[end_idx])
             if path:
-                return [lane for lane in lanes if lane.id in path]
+                return [lane for lane in lanes if str(lane.id) in path]
                 
         for start_idx in range(lanes_id.index(start_id)+1, len(lanes_id)-1):
             for end_idx in range(len(lanes_id)-1, start_idx, -1):
                 path = self.find_lane_path(relation, lanes_id[start_idx], lanes_id[end_idx])
                 if path:
-                    return [lane for lane in lanes if lane.id in path]
+                    return [lane for lane in lanes if str(lane.id) in path]
         return []
 
     def get_lane_boundaries(self, lanes, boundary_type):
@@ -394,8 +421,8 @@ class Segment_Labeler:
         """Main function to determine priority based on lane boundary crossings."""
         agent1_coords, agent2_coords = self.agent_states[self.indices_to_query, :, :]
         
-        agent1_lanes = self.get_lane_in_heading(self.get_agent_lanes(agent1_coords, all_lanes))
-        agent2_lanes = self.get_lane_in_heading(self.get_agent_lanes(agent2_coords, all_lanes))
+        agent1_lanes = self.get_lane_in_heading(self.get_agent_lanes(self.key_pair[0], agent1_coords, all_lanes))
+        agent2_lanes = self.get_lane_in_heading(self.get_agent_lanes(self.key_pair[1], agent2_coords, all_lanes))
         
         agent1_cont_lanes = self.get_continuous_lanes(agent1_lanes)
         agent2_cont_lanes = self.get_continuous_lanes(agent2_lanes)
@@ -405,8 +432,10 @@ class Segment_Labeler:
         agent2_bounds = self.get_lane_boundaries(agent2_cont_lanes, 'left') + \
                        self.get_lane_boundaries(agent2_cont_lanes, 'right')
         
-        agent1_line = LineString(np.vstack((self.before_effective['a1'], self.after_effective['a1'][:-10])))
-        agent2_line = LineString(np.vstack((self.before_effective['a2'], self.after_effective['a2'][:-10])))
+        agent1_after = self.after_effective['a1'][:-10] if len(self.after_effective['a1']) > 10 else self.after_effective['a1']
+        agent2_after = self.after_effective['a2'][:-10] if len(self.after_effective['a2']) > 10 else self.after_effective['a2']
+        agent1_line = LineString(np.vstack((self.before_effective['a1'], agent1_after)))
+        agent2_line = LineString(np.vstack((self.before_effective['a2'], agent2_after)))
         
         agent1_crosses, _ = self._check_boundary_crossing(agent1_line, agent2_bounds)
         agent2_crosses, _ = self._check_boundary_crossing(agent2_line, agent1_bounds)
@@ -438,7 +467,7 @@ class Segment_Labeler:
         # Map priority tuple to labels
         return {
             'Unknown': 'Unknown',
-            (0, 1): self.interaction_ids[0],
-            (1, 0): self.interaction_ids[1],
+            (0, 1): self.key_pair[0],
+            (1, 0): self.key_pair[1],
             (0, 0): 'equal'
         }.get(priority_tuple, 'Unknown')

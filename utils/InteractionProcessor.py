@@ -2,6 +2,7 @@ import logging
 import os
 import gc
 from tqdm import tqdm
+from itertools import islice
 from concurrent.futures import as_completed
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor
@@ -18,6 +19,14 @@ from utils.SceneProcessor import SceneProcessor
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+RESULT_COLUMNS = [
+    "dataset", "folder", "scenario_idx", "track_id", "start", "end",
+    "intensity", "PET", "two/multi", "vehicle_type", "AV_included",
+    "key_agents", "pre_int_i", "post_int_i", "pre_int_j", "post_int_j",
+    "path_category", "path_relation", "turn_label", "priority_label",
+    "original_data_file", "original_scene_id", "original_track_id",
+]
+
 def load_config(file_path: str) -> Dict:
     """Load the YAML configuration file.
 
@@ -33,7 +42,19 @@ def load_config(file_path: str) -> Dict:
 class InteractionProcessorTraj:
     """Class to process trajectory interactions based on configurations."""
 
-    def __init__(self, desired_data: str, param: Optional[Any], cache_location: str, save_path: str, num_workers: int):
+    def __init__(
+        self,
+        desired_data: str,
+        param: Optional[Any],
+        cache_location: str,
+        save_path: str,
+        num_workers: int,
+        output_file: str = "results.csv",
+        start_scene: int = 0,
+        max_scenes: Optional[int] = None,
+        batch_size: int = 100,
+        append: bool = False,
+    ):
         """Initialize the processor with the configuration and parameters.
 
         Args:
@@ -48,6 +69,12 @@ class InteractionProcessorTraj:
         self.desired_data = desired_data
         self.save_path = save_path
         self.timerange = param
+        self.output_file = output_file
+        self.start_scene = max(0, start_scene)
+        self.max_scenes = max_scenes
+        self.batch_size = max(1, batch_size)
+        self.num_workers = max(1, num_workers)
+        self.append = append
 
 
         # Initialize internal state variables for data processing
@@ -73,7 +100,7 @@ class InteractionProcessorTraj:
             cache_location=cache_location,
             num_workers=num_workers,
             incl_vector_map=True,
-            data_dirs={self.desired_data:''}
+            data_dirs={self.desired_data: ''}
         )
 
         # Set up MapAPI and cache paths
@@ -81,42 +108,70 @@ class InteractionProcessorTraj:
         self.cache_path = self.dataset.cache_path
 
     def process(self):
-        results_list = []
-        scenes_list = list(self.dataset.scenes())  # Convert generator to list
-        num_scenes = len(scenes_list)  # Get total number of scenes
-        batch_size = 100  # Number of scenes to process per batch
+        os.makedirs(self.save_path, exist_ok=True)
+        output_path = os.path.join(self.save_path, self.output_file)
+        write_header = not self.append or not os.path.exists(output_path)
+        if not self.append and os.path.exists(output_path):
+            os.remove(output_path)
+        total_rows = 0
+        progress_total = self.max_scenes
 
         # Initialize tqdm progress bar
-        with tqdm(total=num_scenes, desc="Processing Scenes", unit="scene") as pbar:
+        with tqdm(total=progress_total, desc="Processing Scenes", unit="scene") as pbar:
             # Submit tasks in batches
-            for start_idx in range(0, num_scenes, batch_size):
-                end_idx = min(start_idx + batch_size, num_scenes)
-                batch_scenes = scenes_list[start_idx:end_idx]
+            for batch_start_idx, batch_scenes in self.iter_scene_batches():
+                batch_results = []
 
-                with ThreadPoolExecutor(max_workers=4) as executor:
+                with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
                     futures = {
                         executor.submit(self.process_single_scene, idx, desired_scene): idx
-                        for idx, desired_scene in enumerate(batch_scenes, start=start_idx)
+                        for idx, desired_scene in enumerate(batch_scenes, start=batch_start_idx)
                     }
 
                     for future in as_completed(futures):
                         idx = futures[future]
-                        # try:
-                        scene_results = future.result()
-                        results_list.extend(scene_results)
-                        # except Exception as e:
-                        #     logger.error(f"Error processing scene {idx}: {e}")
-                        # finally:
+                        try:
+                            scene_results = future.result()
+                            batch_results.extend(scene_results)
+                        except Exception as e:
+                            logger.error(f"Error processing scene {idx}: {e}")
                         pbar.update(1)
 
-        # Save all results to CSV file
-        col_name = ["dataset", "scenario_idx", "track_id", "start", "end", 
-                    'intensity', 'PET', 'two/multi', 'vehicle_type', 'AV_included',
-                    'key_agents', 'path_relation', 'turn_label', 'priority_label', 'path_category', 
-                    'pre_int_i', 'post_int_i', 'pre_int_j', 'post_int_j']
-        results_df = pd.DataFrame(results_list, columns=col_name)
-        os.makedirs(self.save_path, exist_ok=True)
-        results_df.to_csv(f'{self.save_path}/results.csv', index=False)
+                if batch_results:
+                    results_df = pd.DataFrame(batch_results, columns=RESULT_COLUMNS)
+                    results_df.to_csv(
+                        output_path,
+                        mode="a",
+                        header=write_header,
+                        index=False,
+                    )
+                    write_header = False
+                    total_rows += len(batch_results)
+
+        if write_header:
+            pd.DataFrame(columns=RESULT_COLUMNS).to_csv(output_path, index=False)
+
+        logger.info(f"Saved {total_rows} interaction rows to {output_path}")
+
+    def iter_scene_batches(self):
+        scenes_iter = self.dataset.scenes()
+        if self.start_scene:
+            scenes_iter = islice(scenes_iter, self.start_scene, None)
+
+        remaining = self.max_scenes
+        next_scene_idx = self.start_scene
+
+        while remaining is None or remaining > 0:
+            current_batch_size = self.batch_size if remaining is None else min(self.batch_size, remaining)
+            batch_scenes = list(islice(scenes_iter, current_batch_size))
+            if not batch_scenes:
+                break
+
+            yield next_scene_idx, batch_scenes
+            batch_len = len(batch_scenes)
+            next_scene_idx += batch_len
+            if remaining is not None:
+                remaining -= batch_len
 
     def process_single_scene(self, idx, desired_scene) -> List[List]:
         """Process a single scene and return interaction rsesults.
@@ -144,6 +199,3 @@ class InteractionProcessorTraj:
         gc.collect()
 
         return scene_results
-
-
-

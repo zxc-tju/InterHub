@@ -24,6 +24,10 @@ class IntersectionDetector:
          self.map_processed_data) = (agent_states,
                                                    all_timesteps, column_dict, all_agents, 
                                                    move_agent, map_processed_data)
+        self.agent_ids = list(all_agents.keys())
+        self.agent_index_by_id = {agent_id: idx for idx, agent_id in enumerate(self.agent_ids)}
+        self.timestep_index_by_ts = {ts: idx for idx, ts in enumerate(all_timesteps)}
+        self.position_index = [self.column_dict['x'], self.column_dict['y']]
 
     def intersection_detector(self):
         """Detect intersections for all vehicle pairs within the considered time range.
@@ -67,14 +71,14 @@ class IntersectionDetector:
         Returns:
             Tuple containing point list, distance list, track IDs, and collision points.
         """
-        index_time = self.all_timesteps.index(timestamp)
-        position_index = [self.column_dict['x'], self.column_dict['y']]
+        index_time = self.timestep_index_by_ts[timestamp]
+        position_index = self.position_index
 
         point_list, dis_list, track_ids, collision_point_list = [], [], [], []
 
         for track_id1, track_id2 in pair_list:
-            all_ids = list(self.all_agents.keys())
-            track_id_index1, track_id_index2 = all_ids.index(track_id1), all_ids.index(track_id2)
+            track_id_index1 = self.agent_index_by_id[track_id1]
+            track_id_index2 = self.agent_index_by_id[track_id2]
 
             line1 = self.map_processed_data[timestamp].get(track_id1, {}).get('line', None)
             line2 = self.map_processed_data[timestamp].get(track_id2, {}).get('line', None)
@@ -102,13 +106,13 @@ class IntersectionDetector:
                 track_id1, track_id2 = track_id2, track_id1
                 dis1, dis2 = dis2, dis1
                 line1, line2 = line2, line1
-                track = self.agent_states[track_id_index2, index_time - 4:index_time, position_index]
+                track = self.agent_states[track_id_index2, index_time - 4:index_time][:, position_index]
             else:
-                track = self.agent_states[track_id_index1, index_time - 4:index_time, position_index]
+                track = self.agent_states[track_id_index1, index_time - 4:index_time][:, position_index]
 
             filtered_track = track[~np.all(track == 0, axis=1)]
             if filtered_track.shape[0] >= 2:
-                hist = LineString(filtered_track.T)
+                hist = LineString(filtered_track)
                 combined_points = list(hist.coords) + list(line1.coords)
                 line1 = LineString(combined_points)
 
